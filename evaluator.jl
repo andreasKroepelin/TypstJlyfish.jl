@@ -2,8 +2,15 @@ using JSON
 import Pkg
 import FileWatching
 
-function find_best_representation(result, output_dir)
-    mimes = MIME.(("image/svg+xml", "image/png", "image/jpg", "text/plain"))
+function find_best_representation(result, output_dir, preferred_mimes = [])
+    mimes = MIME.(["image/svg+xml", "image/png", "image/jpg", "text/plain"])
+    sort!(
+        mimes,
+        by = m -> something(
+            findfirst(==(m), preferred_mimes),
+            length(preferred_mimes) + 1
+        )
+    )
 
     function to_output(mime::MIME"text/plain", x)
         str = let iob = IOBuffer()
@@ -58,11 +65,11 @@ function run(
         eval_module = Module()
         outputs = String[]
         results = []
-        for code in codes
+        for value in query
             open(stdout_file, "w") do my_stdout
                 redirect_stdout(my_stdout) do
-                    result = Core.eval(eval_module, Meta.parseall(code))
-                    push!(results, find_best_representation(result, output_dir))
+                    result = Core.eval(eval_module, Meta.parseall(value["code"]))
+                    push!(results, find_best_representation(result, output_dir, value["preferred-mimes"]))
                 end
             end
             output = read(stdout_file, String)
