@@ -1,5 +1,6 @@
 #let setup-julia-eval(
-  output-file: "julia-evaluated.json",
+  julia-output: (evaluations: (), images: ()),
+  julia-output-images: none,
   result-marker: failed => if failed {
       text(fill: red, weight: "bold", [!])
     } else {
@@ -14,7 +15,7 @@
     ),
   relevant-stdout: output => output != "",
   relevant-logs: logs => logs.len() > 0,
-  not-evaluated: text(fill: luma(100))[_not evaluated_],
+  not-evaluated: { text(fill: luma(100))[_not evaluated_]; parbreak() },
   max-image-height: 10em,
   display-result: auto,
   display-stdout: auto,
@@ -22,8 +23,10 @@
   code-evaluated: auto,
 ) = {
   let julia-code-counter = counter("julia-code")
-  let julia-output = json(output-file)
-
+  let julia-output-images-dict = (:)
+  for (img-path, img) in julia-output.images.zip(julia-output-images) {
+    julia-output-images-dict.insert(img-path, img)
+  }
   
   let display-result = if display-result == auto {
     result => (
@@ -34,7 +37,7 @@
           set text(fill: red, weight: "bold") if result.failed
           raw(block: true, result.data)
         } else if result.mime.starts-with("image/") {
-          let img = image(result.data)
+          let img = julia-output-images-dict.at(result.data)
           style(styles => {
             let height = measure(img, styles).height
             let max-height = measure(v(max-image-height), styles).height
@@ -168,7 +171,7 @@
     julia-code-counter.display(id => {
       [ #metadata((preferred-mimes: preferred-mimes, code: it.text)) <julia-code> ]
 
-      code-evaluated(it, julia-output.at(id, default: none), ..kwargs.named())
+      code-evaluated(it, julia-output.evaluations.at(id, default: none), ..kwargs.named())
     })
 
 

@@ -1,0 +1,7 @@
+[package]
+name = "julia-evaluation"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Andreas Kröpelin"]
+license = "MIT"
+description = "Evaluate Julia code inside your Typst document"

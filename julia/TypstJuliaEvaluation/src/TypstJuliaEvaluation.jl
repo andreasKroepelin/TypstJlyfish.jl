@@ -1,8 +1,10 @@
+module TypstJuliaEvaluation
+
 using JSON
 import Pkg
 import FileWatching
 
-function find_best_representation(result, output_dir, preferred_mimes, failed)
+function find_best_representation(result, output_dir, images, preferred_mimes, failed)
     mimes = MIME.(["image/svg+xml", "image/png", "image/jpg", "text/plain"])
     preference(m) = something(
         findfirst(==(string(m)), preferred_mimes),
@@ -30,6 +32,7 @@ function find_best_representation(result, output_dir, preferred_mimes, failed)
         open(file, "w") do io
             @invokelatest show(io, mime, x)
         end
+        push!(images, file)
         (mime = string(mime), data = file, failed)
     end
 
@@ -48,15 +51,16 @@ import Logging
 struct TypstLogger <: Logging.AbstractLogger
     logs::Vector
     output_dir::String
+    images::Vector{String}
 
-    TypstLogger(output_dir) = new([], output_dir)
+    TypstLogger(output_dir, images) = new([], output_dir, images)
 end
 
 reset!(logger::TypstLogger) = empty!(logger.logs)
 
 function Logging.handle_message(logger::TypstLogger, level, message, _module, group, id, file, line; kwargs...)
     processed_kwargs = [
-        kwarg.first => find_best_representation(kwarg.second, logger.output_dir, [], false)
+        kwarg.first => find_best_representation(kwarg.second, logger.output_dir, logger.images, [], false)
         for kwarg in kwargs
     ]
     push!(
@@ -70,18 +74,20 @@ Logging.min_enabled_level(::TypstLogger) = Logging.Info
 
 function run(
     typst_file;
+    typst_args = "",
     evaluation_file = "julia-evaluated.json",
     output_dir = "julia-evaluated-files"
 )
-    query_cmd = `typst query $typst_file --field value "<julia-code>"`
+    query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<julia-code>"`
     stdout_file = tempname()
     previous_query_str = ""
     running = true
-    logger = TypstLogger(output_dir)
+    images = String[]
+    logger = TypstLogger(output_dir, images)
 
     while running
         if !isfile(evaluation_file)
-            write(evaluation_file, JSON.json([]))
+            write(evaluation_file, JSON.json((evaluations = [], images = [])))
         end
         if !isdir(output_dir)
             mkpath(output_dir)
@@ -130,16 +136,18 @@ function run(
             end
             evaluation = (
                 output = read(stdout_file, String),
-                result = find_best_representation(result, output_dir, value["preferred-mimes"], failed),
+                result = find_best_representation(result, output_dir, images, value["preferred-mimes"], failed),
                 logs = copy(logger.logs),
             )
             push!(evaluations, evaluation)
             reset!(logger)
         end
         Pkg.activate(".")
-        out_json = JSON.json(evaluations)
+        out_json = JSON.json((; evaluations, images))
         write(evaluation_file, out_json)
         @info "Output written to file." evaluation_file
         FileWatching.watch_file(typst_file)
     end
+end
+
 end

@@ -1,6 +1,10 @@
-#import "lib.typ": *
+#import "../typst/lib.typ": *
 
-#let julia-eval = setup-julia-eval()
+#let julia-output = json("julia-evaluated.json")
+#let julia-eval = setup-julia-eval(
+  julia-output: julia-output,
+  julia-output-images: julia-output.images.map(image)
+)
 
 #set text(font: "Atkinson Hyperlegible")
 #show raw: set text(font: "JuliaMono")
