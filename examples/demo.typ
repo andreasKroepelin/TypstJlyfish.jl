@@ -65,12 +65,11 @@ Now `z` does not exist outside of that code block:
 z
 ```)
 
-There are four types of things that can appear below your code block.
+There are three types of things that can appear below your code block.
 So far, we have seen the output of the code, as one would expect.
 #footnote[
-  In the top right corner, you can see the MIME type of the output.
-  Currently `image/svg+xml`, `image/png`, `image/jpg` and `text/plain` are
-  supported.
+  Currently, `image/svg+xml`, `image/png`, `image/jpg` and `text/plain` are
+  supported as MIME types.
   In that order, they are considered to be used to display the output.
   You can also specify that you prefer certain ones in your Typst code.
 ]
