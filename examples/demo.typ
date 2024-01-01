@@ -1,9 +1,8 @@
 #import "../typst/lib.typ": *
 
-#let julia-output = json("julia-evaluated.json")
+#let julia-output = cbor("julia-evaluated.cbor")
 #let julia-eval = setup-julia-eval(
   julia-output: julia-output,
-  julia-output-images: julia-output.images.map(image)
 )
 
 #set text(font: "Atkinson Hyperlegible")

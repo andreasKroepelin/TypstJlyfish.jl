@@ -1,6 +1,5 @@
 #let setup-julia-eval(
-  julia-output: (evaluations: (), images: ()),
-  julia-output-images: none,
+  julia-output: (),
   result-marker: failed => if failed {
       text(fill: red, weight: "bold", [!])
     } else {
@@ -23,11 +22,7 @@
   code-evaluated: auto,
 ) = {
   let julia-code-counter = counter("julia-code")
-  let julia-output-images-dict = (:)
-  for (img-path, img) in julia-output.images.zip(julia-output-images) {
-    julia-output-images-dict.insert(img-path, img)
-  }
-  
+
   let display-result = if display-result == auto {
     result => (
       result-marker(result.failed),
@@ -35,9 +30,16 @@
         if result.mime == "text/plain" {
           set align(bottom)
           set text(fill: red, weight: "bold") if result.failed
-          raw(block: true, result.data)
+          raw(block: true, lang: "julia-text-output", result.data)
         } else if result.mime.starts-with("image/") {
-          let img = julia-output-images-dict.at(result.data)
+          let format = if result.mime == "image/png" {
+            "png"
+          } else if result.mime == "image/jpg" {
+            "jpg"
+          } else if result.mime == "image/svg+xml" {
+            "svg"
+          }
+          let img = image.decode(result.data, format: format)
           style(styles => {
             let height = measure(img, styles).height
             let max-height = measure(v(max-image-height), styles).height
@@ -81,15 +83,14 @@
 
   let display-logs = if display-logs == auto {
     let display-attachment(attachment) = {
-      let key = attachment.keys().first()
-      let val = attachment.values().first()
+      let (key, val) = attachment
       ( raw(key + " ="), display-result(val).last() )
     }
 
     let display-attachments(attached) = if attached.len() > 0 {
       set text(size: .6em)
       grid( columns: 2, column-gutter: .8em, row-gutter: .3em,
-        ..attached.map(display-attachment).flatten()
+        ..attached.pairs().map(display-attachment).flatten()
       )
     }
 
@@ -97,6 +98,7 @@
       (min: 2000, color: red, text: [e]),
       (min: 1000, color: orange, text: [w]),
       (min: 0, color: aqua, text: [i]),
+      (min: -calc.inf, color: gray, text: none),
     )
 
     let display-log(log) = {
@@ -171,7 +173,7 @@
     julia-code-counter.display(id => {
       [ #metadata((preferred-mimes: preferred-mimes, code: it.text)) <julia-code> ]
 
-      code-evaluated(it, julia-output.evaluations.at(id, default: none), ..kwargs.named())
+      code-evaluated(it, julia-output.at(id, default: none), ..kwargs.named())
     })
 
 

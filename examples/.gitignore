@@ -1,3 +1,2 @@
-julia-evaluated-files/*
-julia-evaluated.json
+*.cbor
 *.pdf

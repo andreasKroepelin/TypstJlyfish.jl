@@ -1,10 +1,11 @@
 module TypstJuliaEvaluation
 
-using JSON
+import CBOR
+import JSON
 import Pkg
 import FileWatching
 
-function find_best_representation(result, output_dir, images, preferred_mimes, failed)
+function find_best_representation(result, preferred_mimes, failed)
     mimes = MIME.(["image/svg+xml", "image/png", "image/jpg", "text/plain"])
     preference(m) = something(
         findfirst(==(string(m)), preferred_mimes),
@@ -15,34 +16,25 @@ function find_best_representation(result, output_dir, images, preferred_mimes, f
     sort!(mimes, by = preference)
     # @info "new mime order" mimes
 
-    function to_output(mime::MIME"text/plain", x)
-        str = let iob = IOBuffer()
-            @invokelatest show(iob, mime, x)
-            String(take!(iob))
-        end
-        (mime = "text/plain", data = str, failed)
-    end
-    
-    suffix(::MIME"image/svg+xml") = ".svg"
-    suffix(::MIME"image/jpg") = ".jpg"
-    suffix(::MIME"image/png") = ".png"
-
-    function to_output(mime::Union{MIME"image/svg+xml", MIME"image/png", MIME"image/jpg"}, x)
-        file = tempname(output_dir) * suffix(mime)
-        open(file, "w") do io
-            @invokelatest show(io, mime, x)
-        end
-        push!(images, file)
-        (mime = string(mime), data = file, failed)
-    end
-
     for mime in mimes
         showable(mime, result) || continue
-        return to_output(mime, result)
+
+        iob = IOBuffer()
+        @invokelatest show(iob, mime, result)
+        bytes = take!(iob)
+        return Dict(
+            "mime" => string(mime),
+            "data" => mime == MIME"text/plain"() ? String(bytes) : bytes,
+            "failed" => failed,
+        )
     end
 
     # no MIME worked
-    (mime = "text/plain", data = "!! Result could not be displayed !!", failed = true)
+    Dict(
+        "mime" => "text/plain",
+        "data" => "!! Result could not be displayed !!",
+        "failed" => true
+    )
     
 end
 
@@ -50,22 +42,20 @@ import Logging
 
 struct TypstLogger <: Logging.AbstractLogger
     logs::Vector
-    output_dir::String
-    images::Vector{String}
 
-    TypstLogger(output_dir, images) = new([], output_dir, images)
+    TypstLogger() = new([])
 end
 
 reset!(logger::TypstLogger) = empty!(logger.logs)
 
 function Logging.handle_message(logger::TypstLogger, level, message, _module, group, id, file, line; kwargs...)
-    processed_kwargs = [
-        kwarg.first => find_best_representation(kwarg.second, logger.output_dir, logger.images, [], false)
+    processed_kwargs = Dict(
+        string(kwarg.first) => find_best_representation(kwarg.second, [], false)
         for kwarg in kwargs
-    ]
+    )
     push!(
         logger.logs,
-        (; level = level.level, message, attached = processed_kwargs)
+        Dict("level" => level.level, "message" => message, "attached" => processed_kwargs)
     )
 end
 
@@ -75,22 +65,17 @@ Logging.min_enabled_level(::TypstLogger) = Logging.Info
 function run(
     typst_file;
     typst_args = "",
-    evaluation_file = "julia-evaluated.json",
-    output_dir = "julia-evaluated-files"
+    evaluation_file = "julia-evaluated.cbor",
 )
     query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<julia-code>"`
     stdout_file = tempname()
     previous_query_str = ""
     running = true
-    images = String[]
-    logger = TypstLogger(output_dir, images)
+    logger = TypstLogger()
 
     while running
         if !isfile(evaluation_file)
-            write(evaluation_file, JSON.json((evaluations = [], images = [])))
-        end
-        if !isdir(output_dir)
-            mkpath(output_dir)
+            write(evaluation_file, CBOR.encode([]))
         end
 
         query_str = try
@@ -134,17 +119,17 @@ function run(
                     end
                 end
             end
-            evaluation = (
-                output = read(stdout_file, String),
-                result = find_best_representation(result, output_dir, images, value["preferred-mimes"], failed),
-                logs = copy(logger.logs),
+            evaluation = Dict(
+                "output" => read(stdout_file, String),
+                "result" => find_best_representation(result, value["preferred-mimes"], failed),
+                "logs" => copy(logger.logs),
             )
             push!(evaluations, evaluation)
             reset!(logger)
         end
         Pkg.activate(".")
-        out_json = JSON.json((; evaluations, images))
-        write(evaluation_file, out_json)
+        out_cbor = CBOR.encode(evaluations)
+        write(evaluation_file, out_cbor)
         @info "Output written to file." evaluation_file
         FileWatching.watch_file(typst_file)
     end
