@@ -5,8 +5,26 @@ import JSON
 import Pkg
 import FileWatching
 
+const TYPST_DISPLAY_CODE = quote
+    struct Typst
+        code::String
+    end
+
+    macro typ_str(code)
+        :(Typst($code))
+    end
+
+    Base.show(io, ::MIME"text/typst", t::Typst) = write(io, t.code)
+end
+
 function find_best_representation(result, preferred_mimes, failed)
-    mimes = MIME.(["image/svg+xml", "image/png", "image/jpg", "text/plain"])
+    mimes = MIME.([
+        "image/svg+xml",
+        "image/png",
+        "image/jpg",
+        "text/typst",
+        "text/plain",
+    ])
     preference(m) = something(
         findfirst(==(string(m)), preferred_mimes),
         length(preferred_mimes) + 1
@@ -17,14 +35,14 @@ function find_best_representation(result, preferred_mimes, failed)
     # @info "new mime order" mimes
 
     for mime in mimes
-        showable(mime, result) || continue
+        (@invokelatest showable(mime, result)) || continue
 
         iob = IOBuffer()
         @invokelatest show(iob, mime, result)
         bytes = take!(iob)
         return Dict(
             "mime" => string(mime),
-            "data" => mime == MIME"text/plain"() ? String(bytes) : bytes,
+            "data" => startswith(string(mime), "text/") ? String(bytes) : bytes,
             "failed" => failed,
         )
     end
@@ -102,6 +120,7 @@ function run(
 
         Pkg.activate(; temp = true)
         eval_module = Module()
+        Core.eval(eval_module, TYPST_DISPLAY_CODE)
         evaluations = []
         for value in query
             result, failed = open(stdout_file, "w") do my_stdout
@@ -120,7 +139,7 @@ function run(
                 end
             end
             evaluation = Dict(
-                "output" => read(stdout_file, String),
+                "stdout" => read(stdout_file, String),
                 "result" => find_best_representation(result, value["preferred-mimes"], failed),
                 "logs" => copy(logger.logs),
             )

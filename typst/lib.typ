@@ -1,90 +1,101 @@
-#let setup-julia-eval(
-  julia-output: (),
-  result-marker: failed => if failed {
-      text(fill: red, weight: "bold", [!])
-    } else {
-      sym.arrow.r.curve
-    },
-  stdout-marker: [stdout:],
-  logs-marker: [logs:],
-  relevant-result: result => not (
-      result.mime == "text/plain"
-      and
-      result.data in ("", "nothing")
-    ),
-  relevant-stdout: output => output != "",
-  relevant-logs: logs => logs.len() > 0,
-  not-evaluated: { text(fill: luma(100))[_not evaluated_]; parbreak() },
-  max-image-height: 10em,
-  display-result: auto,
-  display-stdout: auto,
-  display-logs: auto,
-  code-evaluated: auto,
+#let _jl-output-data = state("_jl-output-data", ())
+#let _jl-code-counter = counter("_jl-code-counter")
+
+#let read-julia-output(data) = {
+  assert.eq(type(data), array)
+  for evaluation in data {
+    assert.eq(type(evaluation), dictionary)
+    for k in evaluation.keys() {
+      assert(k in ("result", "stdout", "logs"))
+    }
+  }
+  
+  _jl-output-data.update(data)
+}
+
+#let jl-raw(
+  preferred-mimes: (),
+  fn: evaluated => none,
+  it
 ) = {
-  let julia-code-counter = counter("julia-code")
+  if type(preferred-mimes) != array {
+    preferred-mimes = (preferred-mimes, )
+  }
 
-  let display-result = if display-result == auto {
-    result => (
-      result-marker(result.failed),
-      {
-        if result.mime == "text/plain" {
-          set align(bottom)
-          set text(fill: red, weight: "bold") if result.failed
-          raw(block: true, lang: "julia-text-output", result.data)
-        } else if result.mime.starts-with("image/") {
-          let format = if result.mime == "image/png" {
-            "png"
-          } else if result.mime == "image/jpg" {
-            "jpg"
-          } else if result.mime == "image/svg+xml" {
-            "svg"
-          }
-          let img = image.decode(result.data, format: format)
-          style(styles => {
-            let height = measure(img, styles).height
-            let max-height = measure(v(max-image-height), styles).height
-            if height > max-height {
-              set image(height: max-height)
-              img
-            } else {
-              img
-            }
-          })
+  _jl-code-counter.display(id => {
+    [#metadata((preferred-mimes: preferred-mimes, code: it.text)) <julia-code>]
+
+    _jl-output-data.display(output => {
+      fn(output.at(id, default: none))
+    })
+  })
+
+  _jl-code-counter.step()
+}
+
+#let jl(
+  preferred-mimes: (),
+  code: false,
+  stdout: auto,
+  logs: auto,
+  it
+) = {
+  let relevant-result(result) = not (
+    result.mime == "text/plain"
+    and
+    result.data in ("", "nothing")
+  )
+  let display-result(result) = {
+    if result.mime == "text/plain" {
+      // set align(bottom)
+      set text(fill: red, weight: "bold") if result.failed
+      raw(block: false, lang: "julia-text-output", result.data)
+    } else if result.mime == "text/typst" {
+      eval(result.data, mode: "markup")
+    } else if result.mime.starts-with("image/") {
+      let format = if result.mime == "image/png" {
+        "png"
+      } else if result.mime == "image/jpg" {
+        "jpg"
+      } else if result.mime == "image/svg+xml" {
+        "svg"
+      }
+      let img = image.decode(result.data, format: format)
+      style(styles => {
+        let height = measure(img, styles).height
+        let max-height = measure(v(10em), styles).height
+        if height > max-height {
+          set image(height: max-height)
+          img
         } else {
-          panic("Unsupported MIME type: " + result.mime)
+          img
         }
-      }
-    )
-  } else {
-    display-result
+      })
+    } else {
+      panic("Unsupported MIME type: " + result.mime)
+    }
   }
 
-
-  let display-stdout = if display-stdout == auto {
-    output => (
-      stdout-marker,
-      {
-        let output-block-selector = raw.where(block: true, lang: "stdout")
-        show output-block-selector: set block(
-          width: 80%,
-          fill: luma(100),
-          inset: 3pt,
-        )
-        show output-block-selector: set text(fill: luma(250))
-
-        raw(block: true, lang: "stdout", output)
-      }
+  let relevant-stdout(output) = output != ""
+  let display-stdout(output) = {
+    let output-block-selector = raw.where(block: true, lang: "stdout")
+    show output-block-selector: set block(
+      above: 1pt,
+      width: 80%,
+      fill: luma(100),
+      inset: 3pt,
     )
-  } else {
-    display-stdout
+    show output-block-selector: set text(fill: luma(250))
+
+    text(size: .6em)[_stdout:_]
+    raw(block: true, lang: "stdout", output)
   }
 
-
-
-  let display-logs = if display-logs == auto {
+  let relevant-logs(logs) = logs.len() > 0
+  let display-logs(logs) = {
     let display-attachment(attachment) = {
       let (key, val) = attachment
-      ( raw(key + " ="), display-result(val).last() )
+      ( raw(key + " ="), display-result(val) )
     }
 
     let display-attachments(attached) = if attached.len() > 0 {
@@ -98,14 +109,15 @@
       (min: 2000, color: red, text: [e]),
       (min: 1000, color: orange, text: [w]),
       (min: 0, color: aqua, text: [i]),
-      (min: -calc.inf, color: gray, text: none),
+      (min: -calc.inf, color: gray, text: [d]),
     )
 
     let display-log(log) = {
       let icon = icons.find(it => log.level >= it.min)
 
       (
-        text(fill: icon.color, weight: "bold", icon.text),
+        text(fill: gray, weight: "bold")[log],
+        // text(fill: icon.color, weight: "bold", icon.text),
         align(bottom, {
           text(size: .8em, eval(log.message, mode: "markup"))
           display-attachments(log.attached)
@@ -113,72 +125,30 @@
       )
     }
 
-    logs => (
-      logs-marker,
-      grid(
-        columns: (auto, 1fr), column-gutter: 1em, row-gutter: .5em,
-        ..logs.map(display-log).flatten()
-      )
+    grid(
+      columns: (auto, 1fr), column-gutter: 1em, row-gutter: .5em,
+      ..logs.map(display-log).flatten()
     )
-  } else {
-    display-logs
   }
-
-
-  let code-evaluated = if code-evaluated == auto {
-    let fn(
-      code,
-      evaluated,
-      show-anything: true,
-      show-code: true,
-      show-result: auto,
-      show-stdout: auto,
-      show-logs: auto,
-    ) = {
-      if show-anything {
-        code
-        if evaluated != none {
-          grid(columns: 2, gutter: 1em,
-            ..if show-result == auto and relevant-result(evaluated.result) or show-result == true {
-              display-result(evaluated.result)
-            },
-            ..if show-stdout == auto and relevant-stdout(evaluated.output) or show-stdout == true {
-              display-stdout(evaluated.output)
-            },
-            ..if show-logs == auto and relevant-logs(evaluated.logs) or show-logs == true {
-              display-logs(evaluated.logs)
-            },
-          )
-        } else {
-          not-evaluated
-        }
+  
+  let fn(evaluated) = {
+    if code {
+      it
+    }
+    if evaluated != none {
+      if relevant-result(evaluated.result) {
+        display-result(evaluated.result)
       }
-    }
-
-    fn
-  } else {
-    code-evaluated
-  }
-
-  let julia-eval(
-    preferred-mimes: (),
-    ..kwargs,
-    it
-  ) = {
-    let preferred-mimes = if type(preferred-mimes) == "array" {
-      preferred-mimes
+      if stdout != false and relevant-stdout(evaluated.stdout) {
+        display-stdout(evaluated.stdout)
+      }
+      if logs != false and relevant-logs(evaluated.logs) {
+        display-logs(evaluated.logs)
+      }
     } else {
-      (preferred-mimes, )
+      [ *??* ]
     }
-    julia-code-counter.display(id => {
-      [ #metadata((preferred-mimes: preferred-mimes, code: it.text)) <julia-code> ]
-
-      code-evaluated(it, julia-output.at(id, default: none), ..kwargs.named())
-    })
-
-
-    julia-code-counter.step()
   }
 
-  julia-eval
+  jl-raw(preferred-mimes: preferred-mimes, fn: fn, it)
 }

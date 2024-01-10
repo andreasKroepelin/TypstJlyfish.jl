@@ -1,9 +1,6 @@
 #import "../typst/lib.typ": *
 
-#let julia-output = cbor("julia-evaluated.cbor")
-#let julia-eval = setup-julia-eval(
-  julia-output: julia-output,
-)
+#read-julia-output(cbor("julia-evaluated.cbor"))
 
 #set text(font: "Atkinson Hyperlegible")
 #show raw: set text(font: "JuliaMono")
@@ -17,6 +14,22 @@
 
 = Evaluating Julia code in Typst
 
+#jl(
+  code: true,
+  logs: false,
+  ```julia
+  @info "hi" a = 1/3
+  @warn "hallo"
+  str = [rand('a':'z') for _ in 1:10] |> String
+  Typst("_" * str * "_")
+  ```
+)
+
+a b #jl(`1+1;`) c
+
+#jl(`typ"$x^2$"`)
+
+/*
 You can now evaluate the code in Julia code blocks in your Typst document!
 Look here:
 #julia-eval(```julia
@@ -99,3 +112,4 @@ And finally, let's all remember our lovely home planet.
 testimage("earth_apollo17")
 ```
 )
+*/
