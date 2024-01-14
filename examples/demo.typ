@@ -1,4 +1,5 @@
 #import "../typst/lib.typ": *
+#import "@preview/mitex:0.2.0": *
 
 #read-julia-output(cbor("julia-evaluated.cbor"))
 
@@ -15,19 +16,22 @@
 = Evaluating Julia code in Typst
 
 #jl(
-  code: true,
-  logs: false,
   ```julia
-  @info "hi" a = 1/3
-  @warn "hallo"
-  str = [rand('a':'z') for _ in 1:10] |> String
-  Typst("_" * str * "_")
+  import Pkg
+  Pkg.activate(".")
+  Pkg.instantiate()
+
+  using TestImages, ImageShow
   ```
 )
 
-a b #jl(`1+1;`) c
+#jl(
+  // preferred-mimes: "image/jpg",
+  ```julia
+  testimage("earth_apollo17")
+  ```
+)
 
-#jl(`typ"$x^2$"`)
 
 /*
 You can now evaluate the code in Julia code blocks in your Typst document!
@@ -108,8 +112,4 @@ plot(-2pi:.01:2pi, cos)
 )
 
 And finally, let's all remember our lovely home planet.
-#julia-eval(preferred-mimes: "image/png", show-logs: false, ```julia
-testimage("earth_apollo17")
-```
-)
 */

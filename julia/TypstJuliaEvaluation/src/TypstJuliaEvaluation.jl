@@ -138,9 +138,45 @@ function run(
                     end
                 end
             end
+            formatted_result = if value["display"] || failed
+                find_best_representation(
+                    result,
+                    value["preferred-mimes"],
+                    failed
+                )
+            else
+                function is_allowed_type(T)
+                    valtype(::Type{Dict{String, V}}) where V = V
+                    primitives = [
+                        String, Integer, Bool, Char, Float64, Float32, Nothing
+                    ]
+                    if any(T .<: primitives)
+                        return true
+                    elseif T <: Vector
+                        return is_allowed_type(eltype(T))
+                    elseif T <: Dict{String}
+                        return is_allowed_type(valtype(T))
+                    else
+                        return false
+                    end
+                end
+                if is_allowed_type(typeof(result))
+                    Dict(
+                        "data" => result,
+                        "failed" => failed,
+                        "mime" => "",
+                    )
+                else
+                    Dict(
+                        "data" => "Illegal type: $(typeof(result))",
+                        "failed" => true,
+                        "mime" => "",
+                    )
+                end
+            end
             evaluation = Dict(
                 "stdout" => read(stdout_file, String),
-                "result" => find_best_representation(result, value["preferred-mimes"], failed),
+                "result" => formatted_result,
                 "logs" => copy(logger.logs),
             )
             push!(evaluations, evaluation)

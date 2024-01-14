@@ -15,6 +15,7 @@
 
 #let jl-raw(
   preferred-mimes: (),
+  display: false,
   fn: evaluated => none,
   it
 ) = {
@@ -23,7 +24,11 @@
   }
 
   _jl-code-counter.display(id => {
-    [#metadata((preferred-mimes: preferred-mimes, code: it.text)) <julia-code>]
+    [#metadata((
+      preferred-mimes: preferred-mimes,
+      code: it.text,
+      display: display,
+    )) <julia-code>]
 
     _jl-output-data.display(output => {
       fn(output.at(id, default: none))
@@ -36,6 +41,7 @@
 #let jl(
   preferred-mimes: (),
   code: false,
+  result: auto,
   stdout: auto,
   logs: auto,
   it
@@ -136,7 +142,7 @@
       it
     }
     if evaluated != none {
-      if relevant-result(evaluated.result) {
+      if result != false and relevant-result(evaluated.result) {
         display-result(evaluated.result)
       }
       if stdout != false and relevant-stdout(evaluated.stdout) {
@@ -150,5 +156,5 @@
     }
   }
 
-  jl-raw(preferred-mimes: preferred-mimes, fn: fn, it)
+  jl-raw(preferred-mimes: preferred-mimes, display: true, fn: fn, it)
 }
