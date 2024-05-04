@@ -1,115 +1,55 @@
 #import "../typst/lib.typ": *
-#import "@preview/mitex:0.2.0": *
 
-#read-julia-output(cbor("julia-evaluated.cbor"))
+#set page(width: 20cm, height: auto, margin: 1cm)
 
-#set text(font: "Atkinson Hyperlegible")
+#read-julia-output(cbor("demo-juice.cbor"))
+
 #show raw: set text(font: "JuliaMono")
-#set par(justify: true)
-#show raw.where(block: true, lang: "julia"): set block(
-  fill: luma(240),
-  inset: 5pt,
-  radius: 5pt,
-  width: 100%,
-)
+#set par(justify: false)
+#set align(horizon)
 
-= Evaluating Julia code in Typst
+#grid(columns: 2, column-gutter: .5cm,)[
+  #set text(size: 8pt)
+  ````typ
+  #jl(
+    ```julia
+    import Pkg
+    Pkg.add(["Dates", "HTTP", "FileIO", "ImageShow"])
+    using Dates, HTTP, FileIO, ImageShow
+    ```
+  )
 
-#jl(
-  ```julia
-  import Pkg
-  Pkg.activate(".")
-  Pkg.instantiate()
+  Hello, Juliacon #jl(`year(now())`)!
+  This is Juyst, not to be confused with...
 
-  using TestImages, ImageShow
-  ```
-)
+  #jl(
+    ```julia
+    load(HTTP.URI(
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Karte_Insel_Juist.png/1024px-Karte_Insel_Juist.png"
+    ))
+    ```
+  )
+  ````
+][
+  #set text(font: "Alegreya Sans", size: 20pt)
+  #jl(
+    ```julia
+    import Pkg
+    Pkg.add(["Dates", "HTTP", "FileIO", "ImageShow"])
+    using Dates, HTTP, FileIO, ImageShow
+    ```
+  )
 
-#jl(
-  // preferred-mimes: "image/jpg",
-  ```julia
-  testimage("earth_apollo17")
-  ```
-)
+  Hello, Juliacon #jl(`year(now())`)!
+  This is Juyst, not to be confused with...
 
+  #{
+    set image(width: 9cm)
+    jl(
+      ```julia
 
-/*
-You can now evaluate the code in Julia code blocks in your Typst document!
-Look here:
-#julia-eval(```julia
-x = 3
-y = 4
-x * y
-```)
-It's as simple as wrapping your code block in the `#julia-eval` function.
-The evaluation script will *automatically reevaluate your code* when necessary
-(kind of like `typst watch`).
-````typ
-#julia-eval(```julia
-x = 3
-y = 4
-x * y
-```)
-````
-
-Code is evaluated in a separate environment and in its own module.
-We can therefore without worrying write:
-#julia-eval(show-anything: false, ```julia
-import Pkg
-Pkg.add(["ImageShow", "TestImages", "Plots"])
-using ImageShow, TestImages, Plots
-```
-)
-
-All evaluated code-blocks share one scope.
-Remember the `x` from before?
-It is still valid:
-#julia-eval(```julia
-sin(x * pi)
-```)
-
-To prevent variables from being in the global scope, you can use a `let` block,
-for example:
-#julia-eval(show-result: false, ```julia
-let
-    z = 2
-end
-```)
-
-Now `z` does not exist outside of that code block:
-#julia-eval(```julia
-z
-```)
-
-There are three types of things that can appear below your code block.
-So far, we have seen the output of the code, as one would expect.
-#footnote[
-  Currently, `image/svg+xml`, `image/png`, `image/jpg` and `text/plain` are
-  supported as MIME types.
-  In that order, they are considered to be used to display the output.
-  You can also specify that you prefer certain ones in your Typst code.
+      load(HTTP.URI("https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Karte_Insel_Juist.png/1024px-Karte_Insel_Juist.png"))
+      ```
+    )
+  }
 ]
-But there are also two different types:
-If you print something to `stdout`, it appears in its own section, as well as
-if you use Julia's logging framework using the macros `@info`, `@warn` or `@error`.
-Log messages are interpreted as Typst content.
-
-#julia-eval(```julia
-a = 2.718
-println("Let's print something!")
-println("log($a) = $(log(a))")
-@info "This is an *info*, telling you that \$1 + 1 = 2\$."
-@warn "This is a ... #h(3em) wait for it ... #h(3em) warning!"
-@error "This is an _error_ with attached data." cos(a)
-# and let's also return a result
-1 / a
-```)
-
-Earlier, we loaded the `Plots` package, let's use it:
-#julia-eval(```julia
-plot(-2pi:.01:2pi, cos)
-```
-)
-
-And finally, let's all remember our lovely home planet.
-*/

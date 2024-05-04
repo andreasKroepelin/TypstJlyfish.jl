@@ -80,10 +80,16 @@ end
 Logging.shouldlog(::TypstLogger, level, _module, group, id) = level >= Logging.Info
 Logging.min_enabled_level(::TypstLogger) = Logging.Info
 
+function default_cbor_file(typst_file)
+    @assert endswith(typst_file, ".typ") "given Typst file does not end with .typ"
+    base, _suffix = splitext(typst_file)
+    base * "-juice.cbor"
+end
+
 function run(
     typst_file;
     typst_args = "",
-    evaluation_file = "julia-evaluated.cbor",
+    evaluation_file = default_cbor_file(typst_file),
 )
     query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<julia-code>"`
     stdout_file = tempname()
@@ -122,6 +128,7 @@ function run(
         eval_module = Module()
         Core.eval(eval_module, TYPST_DISPLAY_CODE)
         evaluations = []
+
         for value in query
             result, failed = open(stdout_file, "w") do my_stdout
                 redirect_stdout(my_stdout) do
@@ -178,6 +185,7 @@ function run(
                 "stdout" => read(stdout_file, String),
                 "result" => formatted_result,
                 "logs" => copy(logger.logs),
+                "code" => value["code"],
             )
             push!(evaluations, evaluation)
             reset!(logger)

@@ -6,7 +6,7 @@
   for evaluation in data {
     assert.eq(type(evaluation), dictionary)
     for k in evaluation.keys() {
-      assert(k in ("result", "stdout", "logs"))
+      assert(k in ("result", "stdout", "logs", "code"))
     }
   }
   
@@ -31,7 +31,15 @@
     )) <julia-code>]
 
     _jl-output-data.display(output => {
-      fn(output.at(id, default: none))
+      let ev = output.at(id, default: none)
+      if ev == none {
+        [*??*]
+      } else if ev.code != it.text {
+        // out of sync
+        [*??*]
+      } else {
+        fn(ev)
+      }
     })
   })
 
@@ -55,7 +63,8 @@
     if result.mime == "text/plain" {
       // set align(bottom)
       set text(fill: red, weight: "bold") if result.failed
-      raw(block: false, lang: "julia-text-output", result.data)
+      // raw(block: false, lang: "julia-text-output", result.data)
+      text(result.data)
     } else if result.mime == "text/typst" {
       eval(result.data, mode: "markup")
     } else if result.mime.starts-with("image/") {
@@ -66,17 +75,7 @@
       } else if result.mime == "image/svg+xml" {
         "svg"
       }
-      let img = image.decode(result.data, format: format)
-      style(styles => {
-        let height = measure(img, styles).height
-        let max-height = measure(v(10em), styles).height
-        if height > max-height {
-          set image(height: max-height)
-          img
-        } else {
-          img
-        }
-      })
+      image.decode(result.data, format: format)
     } else {
       panic("Unsupported MIME type: " + result.mime)
     }
@@ -85,13 +84,13 @@
   let relevant-stdout(output) = output != ""
   let display-stdout(output) = {
     let output-block-selector = raw.where(block: true, lang: "stdout")
-    show output-block-selector: set block(
-      above: 1pt,
-      width: 80%,
-      fill: luma(100),
-      inset: 3pt,
-    )
-    show output-block-selector: set text(fill: luma(250))
+    // show output-block-selector: set block(
+    //   above: 1pt,
+    //   width: 80%,
+    //   fill: luma(100),
+    //   inset: 3pt,
+    // )
+    // show output-block-selector: set text(fill: luma(250))
 
     text(size: .6em)[_stdout:_]
     raw(block: true, lang: "stdout", output)
@@ -141,20 +140,17 @@
     if code {
       it
     }
-    if evaluated != none {
-      if result != false and relevant-result(evaluated.result) {
-        display-result(evaluated.result)
-      }
-      if stdout != false and relevant-stdout(evaluated.stdout) {
-        display-stdout(evaluated.stdout)
-      }
-      if logs != false and relevant-logs(evaluated.logs) {
-        display-logs(evaluated.logs)
-      }
-    } else {
-      [ *??* ]
+    if result != false and relevant-result(evaluated.result) {
+      display-result(evaluated.result)
+    }
+    if stdout != false and relevant-stdout(evaluated.stdout) {
+      display-stdout(evaluated.stdout)
+    }
+    if logs != false and relevant-logs(evaluated.logs) {
+      display-logs(evaluated.logs)
     }
   }
 
   jl-raw(preferred-mimes: preferred-mimes, display: true, fn: fn, it)
 }
+
