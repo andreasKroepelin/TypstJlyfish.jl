@@ -83,7 +83,7 @@ Logging.min_enabled_level(::TypstLogger) = Logging.Info
 function default_cbor_file(typst_file)
     @assert endswith(typst_file, ".typ") "given Typst file does not end with .typ"
     base, _suffix = splitext(typst_file)
-    base * "-juice.cbor"
+    base * "-juyst.cbor"
 end
 
 function run(
@@ -91,7 +91,7 @@ function run(
     typst_args = "",
     evaluation_file = default_cbor_file(typst_file),
 )
-    query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<julia-code>"`
+    query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<juyst-julia-code>"`
     stdout_file = tempname()
     previous_query_str = ""
     running = true

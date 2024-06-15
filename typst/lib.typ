@@ -1,5 +1,5 @@
-#let _jl-output-data = state("_jl-output-data", ())
-#let _jl-code-counter = counter("_jl-code-counter")
+#let juyst-output-data = state("juyst-output-data", ())
+#let juyst-code-counter = counter("juyst-code-counter")
 
 #let read-julia-output(data) = {
   assert.eq(type(data), array)
@@ -10,7 +10,7 @@
     }
   }
   
-  _jl-output-data.update(data)
+  just-output-data.update(data)
 }
 
 #let jl-raw(
@@ -23,27 +23,28 @@
     preferred-mimes = (preferred-mimes, )
   }
 
-  _jl-code-counter.display(id => {
-    [#metadata((
-      preferred-mimes: preferred-mimes,
-      code: it.text,
-      display: display,
-    )) <julia-code>]
+  [#metadata((
+    preferred-mimes: preferred-mimes,
+    code: it.text,
+    display: display,
+  )) <juyst-julia-code>]
 
-    _jl-output-data.display(output => {
-      let ev = output.at(id, default: none)
-      if ev == none {
-        [*??*]
-      } else if ev.code != it.text {
-        // out of sync
-        [*??*]
-      } else {
-        fn(ev)
-      }
-    })
-  })
+  context {
+    let id = juyst-code-counter.get()
+    let output = juyst-output-data.get()
 
-  _jl-code-counter.step()
+    let ev = output.at(id, default: none)
+    if ev == none {
+      [*??*]
+    } else if ev.code != it.text {
+      // out of sync
+      [*??*]
+    } else {
+      fn(ev)
+    }
+  }
+
+  juyst-code-counter.step()
 }
 
 #let jl(
