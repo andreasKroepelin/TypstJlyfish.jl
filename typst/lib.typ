@@ -1,20 +1,21 @@
-#let juyst-output-data = state("juyst-output-data", ())
+#let juyst-output-data = state("juyst-output-data", (:))
 #let juyst-code-counter = counter("juyst-code-counter")
 
 #let read-julia-output(data) = {
-  assert.eq(type(data), array)
-  for evaluation in data {
+  assert.eq(type(data), dictionary)
+  for (_id, evaluation) in data {
     assert.eq(type(evaluation), dictionary)
     for k in evaluation.keys() {
       assert(k in ("result", "stdout", "logs", "code"))
     }
   }
   
-  just-output-data.update(data)
+  juyst-output-data.update(data)
 }
 
 #let jl-raw(
   preferred-mimes: (),
+  recompute: true,
   display: false,
   fn: evaluated => none,
   it
@@ -23,15 +24,18 @@
     preferred-mimes = (preferred-mimes, )
   }
 
-  [#metadata((
-    preferred-mimes: preferred-mimes,
-    code: it.text,
-    display: display,
-  )) <juyst-julia-code>]
-
   context {
-    let id = juyst-code-counter.get()
+    let id = str(juyst-code-counter.get().first())
     let output = juyst-output-data.get()
+
+    [#metadata((
+      preferred-mimes: preferred-mimes,
+      code: it.text,
+      id: id,
+      display: display,
+      recompute: recompute,
+    )) <juyst-julia-code>]
+
 
     let ev = output.at(id, default: none)
     if ev == none {
@@ -49,6 +53,7 @@
 
 #let jl(
   preferred-mimes: (),
+  recompute: true,
   code: false,
   result: auto,
   stdout: auto,
@@ -93,6 +98,7 @@
     // )
     // show output-block-selector: set text(fill: luma(250))
 
+    linebreak()
     text(size: .6em)[_stdout:_]
     raw(block: true, lang: "stdout", output)
   }
@@ -152,6 +158,12 @@
     }
   }
 
-  jl-raw(preferred-mimes: preferred-mimes, display: true, fn: fn, it)
+  jl-raw(
+    preferred-mimes: preferred-mimes,
+    recompute: recompute,
+    display: true,
+    fn: fn,
+    it
+  )
 }
 

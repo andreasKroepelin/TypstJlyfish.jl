@@ -1,4 +1,4 @@
-module TypstJuliaEvaluation
+module Juyst
 
 import CBOR
 import JSON
@@ -56,6 +56,31 @@ function find_best_representation(result, preferred_mimes, failed)
     
 end
 
+function is_allowed_type(T)
+    valtype(::Type{Dict{String, V}}) where V = V
+    primitives = [
+        String, Integer, Bool, Char, Float64, Float32, Nothing
+    ]
+    if any(T .<: primitives)
+        return true
+    elseif T <: Vector
+        return is_allowed_type(eltype(T))
+    elseif T <: Dict{String}
+        return is_allowed_type(valtype(T))
+    else
+        return false
+    end
+end
+
+function truncate_code(code, n)
+    chars = Vector{Char}(code)
+    if length(chars) <= n
+        code
+    else
+        join(chars[1:n - 3]) * "..."
+    end
+end
+
 import Logging
 
 struct TypstLogger <: Logging.AbstractLogger
@@ -96,10 +121,15 @@ function run(
     previous_query_str = ""
     running = true
     logger = TypstLogger()
+    if isfile(evaluation_file)
+        evaluations = CBOR.decode(read(evaluation_file))
+    else
+        evaluations = Dict{String, Any}()
+    end
 
     while running
         if !isfile(evaluation_file)
-            write(evaluation_file, CBOR.encode([]))
+            write(evaluation_file, CBOR.encode(evaluations))
         end
 
         query_str = try
@@ -126,47 +156,46 @@ function run(
 
         Pkg.activate(; temp = true)
         eval_module = Module()
-        Core.eval(eval_module, TYPST_DISPLAY_CODE)
-        evaluations = []
+        # Core.eval(eval_module, TYPST_DISPLAY_CODE)
 
         for value in query
-            result, failed = open(stdout_file, "w") do my_stdout
+            should_skip = (
+                # skipping requested
+                !value["recompute"]
+                # we already computed this
+                && value["id"] in keys(evaluations)
+                # the code has not changed
+                && evaluations[value["id"]]["code"] == value["code"]
+            )
+            if should_skip
+                @info """
+                    Skipping recomputation of code section with id $(value["id"]):
+                    $(truncate_code(value["code"], 40))
+                """
+                continue
+            end
+            computation = open(stdout_file, "w") do my_stdout
                 redirect_stdout(my_stdout) do
                     Logging.with_logger(logger) do
                         try
                             r = Core.eval(eval_module, Meta.parseall(value["code"]))
-                            r, false
+                            (result = r, failed = false)
                         catch e
                             if e isa InterruptException
                                 running = false
                             end
-                            e, true 
+                            (result = e, failed = true)
                         end
                     end
                 end
             end
-            formatted_result = if value["display"] || failed
+            formatted_result = if value["display"] || computation.failed
                 find_best_representation(
-                    result,
+                    computation.result,
                     value["preferred-mimes"],
-                    failed
+                    computation.failed
                 )
             else
-                function is_allowed_type(T)
-                    valtype(::Type{Dict{String, V}}) where V = V
-                    primitives = [
-                        String, Integer, Bool, Char, Float64, Float32, Nothing
-                    ]
-                    if any(T .<: primitives)
-                        return true
-                    elseif T <: Vector
-                        return is_allowed_type(eltype(T))
-                    elseif T <: Dict{String}
-                        return is_allowed_type(valtype(T))
-                    else
-                        return false
-                    end
-                end
                 if is_allowed_type(typeof(result))
                     Dict(
                         "data" => result,
@@ -187,7 +216,7 @@ function run(
                 "logs" => copy(logger.logs),
                 "code" => value["code"],
             )
-            push!(evaluations, evaluation)
+            evaluations[value["id"]] = evaluation
             reset!(logger)
         end
         Pkg.activate(".")

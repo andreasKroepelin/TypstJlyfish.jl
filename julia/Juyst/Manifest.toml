@@ -16,7 +16,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[deps.CBOR]]
 deps = ["Base64", "Printf", "Serialization"]
-git-tree-sha1 = "d5e2ca382ea949d7d97c9acafbc54a8751349877"
+git-tree-sha1 = "9ad93dc79605eb424f68c0fdb1a0828b74496c72"
+repo-rev = "16d273e4361dfef11f2d6651a15fc713d902299e"
+repo-url = "https://github.com/attdona/CBOR.jl"
 uuid = "7f3e1038-61bc-5414-967e-017c9d82adda"
 version = "0.1.1"
 

@@ -2,7 +2,7 @@
 
 #set page(width: 20cm, height: auto, margin: 1cm)
 
-#read-julia-output(cbor("demo-juice.cbor"))
+#read-julia-output(cbor("demo-juyst.cbor"))
 
 #show raw: set text(font: "JuliaMono")
 #set par(justify: false)
@@ -35,8 +35,8 @@
   #jl(
     ```julia
     import Pkg
-    Pkg.add(["Dates", "HTTP", "FileIO", "ImageShow"])
-    using Dates, HTTP, FileIO, ImageShow
+    Pkg.add(["Dates", "HTTP", "FileIO", "ImageIO", "ImageShow"])
+    using Dates, HTTP, FileIO, ImageIO, ImageShow
     ```
   )
 
