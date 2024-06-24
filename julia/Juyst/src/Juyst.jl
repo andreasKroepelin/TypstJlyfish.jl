@@ -136,7 +136,7 @@ function run(
                 break
             end
             if e isa ProcessFailedException
-                @info "Typst query failed." query_cmd
+                @info "Typst query failed." query_cmds
                 FileWatching.watch_file(typst_file)
                 continue
             end
@@ -153,7 +153,7 @@ function run(
 
         eval_module = Module(:JuystEval)
 
-        pkgs = reduce(vcat, query.pkg)
+        pkgs = reduce(vcat, query.pkg, init = String[])
         qstrs = Pkg.REPLMode.QString.(pkgs, false)
         pkg_specs = Pkg.REPLMode.parse_package(qstrs, nothing)
         # `setdiff` would be more straight forward but it somehow behaves
@@ -202,15 +202,16 @@ function run(
                     computation.failed
                 )
             else
-                if is_allowed_type(typeof(result))
+                T = typeof(computation.result)
+                if is_allowed_type(T)
                     Dict(
-                        "data" => result,
-                        "failed" => failed,
+                        "data" => computation.result,
+                        "failed" => computation.failed,
                         "mime" => "",
                     )
                 else
                     Dict(
-                        "data" => "Illegal type: $(typeof(result))",
+                        "data" => "Illegal type: $T",
                         "failed" => true,
                         "mime" => "",
                     )
