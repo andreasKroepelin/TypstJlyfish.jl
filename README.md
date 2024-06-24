@@ -93,7 +93,7 @@ You will notice that Juyst recognises the Julia code has not changed and thus
 does not rerun it!
 This is of course very important when you are writing a long document.
 
-### Package management
+## Package management
 
 Most non-trivial Julia code will use external packages.
 To specify what Julia packages you want to import, you can use the `jl-pkg`
