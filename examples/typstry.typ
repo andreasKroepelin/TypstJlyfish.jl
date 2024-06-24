@@ -2,10 +2,9 @@
 
 #read-julia-output(cbor("typstry-juyst.cbor"))
 
-#jl(```julia
-  import Pkg
-  Pkg.add("Typstry")
+#jl-pkg("Typstry")
 
+#jl(```julia
   using Typstry
 ```)
 

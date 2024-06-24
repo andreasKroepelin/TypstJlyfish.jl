@@ -13,6 +13,12 @@
   juyst-output-data.update(data)
 }
 
+#let jl-pkg(..pkgs) = {
+  let pkgs = pkgs.pos()
+  assert(pkgs.all(pkg => type(pkg) == str))
+  [#metadata(pkgs) <juyst-pkg>]
+}
+
 #let jl-raw(
   preferred-mimes: (),
   recompute: true,
@@ -28,6 +34,7 @@
     let id = str(juyst-code-counter.get().first())
     let output = juyst-output-data.get()
 
+    // box(inset: 3pt, fill: aqua, radius: 3pt)[#id]
     [#metadata((
       preferred-mimes: preferred-mimes,
       code: it.text,

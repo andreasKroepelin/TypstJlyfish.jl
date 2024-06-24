@@ -5,7 +5,9 @@ version = "0.1.0"
 
 [deps]
 CBOR = "7f3e1038-61bc-5414-967e-017c9d82adda"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 FileWatching = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Typst_jll = "eb4b1da6-20f6-5c66-9826-fdb8ad410d0e"

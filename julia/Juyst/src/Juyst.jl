@@ -1,38 +1,25 @@
 module Juyst
 
+import Typst_jll
 import CBOR
 import JSON
 import Pkg
 import FileWatching
-
-const TYPST_DISPLAY_CODE = quote
-    struct Typst
-        code::String
-    end
-
-    macro typ_str(code)
-        :(Typst($code))
-    end
-
-    Base.show(io, ::MIME"text/typst", t::Typst) = write(io, t.code)
-end
+import Dates
 
 function find_best_representation(result, preferred_mimes, failed)
     mimes = MIME.([
+        "text/typst",
         "image/svg+xml",
         "image/png",
         "image/jpg",
-        "text/typst",
         "text/plain",
     ])
     preference(m) = something(
         findfirst(==(string(m)), preferred_mimes),
         length(preferred_mimes) + 1
     )
-    # @info "preferred mimes" preferred_mimes
-    # @info "preferences" preference.(mimes)
     sort!(mimes, by = preference)
-    # @info "new mime order" mimes
 
     for mime in mimes
         (@invokelatest showable(mime, result)) || continue
@@ -116,9 +103,15 @@ function run(
     typst_args = "",
     evaluation_file = default_cbor_file(typst_file),
 )
-    query_cmd = `typst query $(split(typst_args)) $typst_file --field value "<juyst-julia-code>"`
+    query_cmds = (
+        code = `$(Typst_jll.typst()) query $(split(typst_args)) $typst_file --field value "<juyst-julia-code>"`,
+        pkg = `$(Typst_jll.typst()) query $(split(typst_args)) $typst_file --field value "<juyst-pkg>"`,
+    )
     stdout_file = tempname()
-    previous_query_str = ""
+    project_dir = mktempdir(prefix = "juyst-eval")
+    Pkg.activate(project_dir)
+    previous_query_strs = (code = "", pkg = "")
+    previous_pkg_specs = Pkg.PackageSpec[]
     running = true
     logger = TypstLogger()
     if isfile(evaluation_file)
@@ -128,12 +121,15 @@ function run(
     end
 
     while running
+        @info Dates.format(Dates.now(), "HH:MM:SS")
         if !isfile(evaluation_file)
             write(evaluation_file, CBOR.encode(evaluations))
         end
 
-        query_str = try
-            read(query_cmd, String)
+        query_strs = try
+            map(query_cmds) do query_cmd
+                read(query_cmd, String)
+            end
         catch e
             if e isa InterruptException
                 running = false
@@ -146,19 +142,29 @@ function run(
             end
             throw(e)
         end
-        if query_str == previous_query_str
+
+        if query_strs == previous_query_strs
             @info "Typst file changed but Julia code is identical to previous version."
             FileWatching.watch_file(typst_file)
             continue
         end
-        previous_query_str = query_str
-        query = JSON.parse(query_str)
+        previous_query_strs = query_strs
+        query = map(JSON.parse, query_strs)
 
-        Pkg.activate(; temp = true)
-        eval_module = Module()
-        # Core.eval(eval_module, TYPST_DISPLAY_CODE)
+        eval_module = Module(:JuystEval)
 
-        for value in query
+        pkgs = reduce(vcat, query.pkg)
+        qstrs = Pkg.REPLMode.QString.(pkgs, false)
+        pkg_specs = Pkg.REPLMode.parse_package(qstrs, nothing)
+        # `setdiff` would be more straight forward but it somehow behaves
+        # strangely here...
+        pkg_to_add = [p for p in pkg_specs if !(p in previous_pkg_specs)]
+        pkg_to_rm  = [p for p in previous_pkg_specs if !(p in pkg_specs)]
+        isempty(pkg_to_add) || Pkg.add(pkg_to_add)
+        isempty(pkg_to_rm)  || Pkg.rm(pkg_to_rm)
+        previous_pkg_specs = pkg_specs
+
+        for value in query.code
             should_skip = (
                 # skipping requested
                 !value["recompute"]
@@ -219,7 +225,6 @@ function run(
             evaluations[value["id"]] = evaluation
             reset!(logger)
         end
-        Pkg.activate(".")
         out_cbor = CBOR.encode(evaluations)
         write(evaluation_file, out_cbor)
         @info "Output written to file." evaluation_file

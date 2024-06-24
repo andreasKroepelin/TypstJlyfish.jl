@@ -4,10 +4,9 @@
 
 #read-julia-output(cbor("summary-tables-juyst.cbor"))
 
-#jl(```julia
-  import Pkg
-  Pkg.add("SummaryTables")
+#jl-pkg("SummaryTables")
 
+#jl(```julia
   using SummaryTables
 ```)
 

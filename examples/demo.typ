@@ -11,10 +11,10 @@
 #grid(columns: 2, column-gutter: .5cm,)[
   #set text(size: 8pt)
   ````typ
+  #jl-pkg("Dates", "HTTP", "FileIO", "ImageIO", "ImageShow")
+
   #jl(
     ```julia
-    import Pkg
-    Pkg.add(["Dates", "HTTP", "FileIO", "ImageShow"])
     using Dates, HTTP, FileIO, ImageShow
     ```
   )
@@ -32,10 +32,11 @@
   ````
 ][
   #set text(font: "Alegreya Sans", size: 20pt)
+
+  #jl-pkg("Dates", "HTTP", "FileIO", "ImageIO", "ImageShow")
+
   #jl(
     ```julia
-    import Pkg
-    Pkg.add(["Dates", "HTTP", "FileIO", "ImageIO", "ImageShow"])
     using Dates, HTTP, FileIO, ImageIO, ImageShow
     ```
   )
