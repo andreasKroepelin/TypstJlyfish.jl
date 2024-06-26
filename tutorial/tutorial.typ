@@ -1,10 +1,10 @@
 #import "../typst/lib.typ": *
 
-#set text(font: "Alegreya Sans")
+#set text(font: "Atkinson Hyperlegible")
 #set par(justify: true)
 #show heading: set text(style: "italic", weight: "regular")
 #show heading: set block(spacing: 1em)
-#set heading(numbering: "1.")
+#set heading(numbering: "1")
 #show raw: set text(font: "JuliaMono")
 #show raw.where(block: true): set block(
   inset: 1em,
@@ -18,13 +18,14 @@
   baseline: .2em,
   fill: luma(240),
 )
+#show link: it => underline(text(fill: blue, it))
 
 #read-julia-output(cbor("tutorial-juyst.cbor"))
 
-#text(size: 4em, fill: blue)[Juyst]
+#text(size: 4em, fill: blue, font: "Alegreya")[Juyst]
 #linebreak()
 #v(.5em)
-#text(size: 2em)[A tutorial]
+#text(size: 2em, font: "Alegreya")[A tutorial]
 
 #line(length: 70%)
 
@@ -110,14 +111,14 @@ Most non-trivial Julia code will use external packages.
 To specify what Julia packages you want to import, you can use the `jl-pkg`
 function in Typst.
 It accepts an arbitrary amount of string arguments where each of them specifies
-a Julia package in [the same way as you would in the Julia package
-REPL](https://pkgdocs.julialang.org/v1/repl/#repl-add).
+a Julia package in #link("https://pkgdocs.julialang.org/v1/repl/#repl-add")[the
+same way as you would in the Julia package REPL].
 
 Let's try it out!
 ````typ
 #jl-pkg("Example@0.4", "Plots")
 
-What is $3 + 5$?
+What is three plus five?
 
 #jl(```julia
   import Example
@@ -136,7 +137,7 @@ Let's plot something!
 
 #jl-pkg("Example@0.4", "Plots")
 
-What is $3 + 5$?
+What is three plus five?
 
 #jl(```julia
   import Example
