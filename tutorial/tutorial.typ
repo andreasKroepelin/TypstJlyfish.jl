@@ -1,6 +1,5 @@
 #import "../typst/lib.typ": *
 
-#set page(width: 35em, height: 50em, margin: 1em)
 #set text(font: "Alegreya Sans")
 #set par(justify: true)
 #show heading: set text(style: "italic", weight: "regular")
