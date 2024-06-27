@@ -1,9 +1,15 @@
 import Logging
 
-struct TypstLogger <: Logging.AbstractLogger
-    logs::Vector
+@kwdef struct Log
+    level::Logging.LogLevel
+    message::String
+    attached::Dict{String, FormattedResult}
+end
 
-    TypstLogger() = new([])
+struct TypstLogger <: Logging.AbstractLogger
+    logs::Vector{Log}
+
+    TypstLogger() = new(Log[])
 end
 
 reset!(logger::TypstLogger) = empty!(logger.logs)
@@ -18,10 +24,10 @@ function Logging.handle_message(
     )
     push!(
         logger.logs,
-        Dict(
-            "level" => level.level, 
-            "message" => message, 
-            "attached" => processed_kwargs
+        Log(
+            level = level.level, 
+            message = message, 
+            attached = processed_kwargs,
         )
     )
 end

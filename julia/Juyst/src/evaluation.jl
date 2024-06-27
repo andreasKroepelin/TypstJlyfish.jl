@@ -1,48 +1,5 @@
-struct PkgState
-    add_pkgs::Vector{Pkg.PackageSpec}
-    dev_pkgs::Vector{Pkg.PackageSpec}
-
-    PkgState() = new(
-        Pkg.PackageSpec[],
-        Pkg.PackageSpec[],
-    )
-end
-
-@kwdef struct Evaluation
-    result::FormattedResult
-    stdout::String
-    logs::Vector{Log}
-    code::String
-end
-
-mutable struct EvaluationState
-    pkg::PackageState
-    stdout_file::String
-    logger::TypstLogger
-    eval_module::Module
-    evaluation_file::String
-    evaluations::Dict{String, Evaluation}
-
-    function EvaluationState(evaluation_file::String)
-        if isfile(evaluation_file)
-            evaluations = CBOR.decode(read(evaluation_file))
-        else
-            evaluations = Dict{String, Evaluation}()
-        end
-
-        new(
-            PkgState(),
-            tempname(),
-            TypstLogger(),
-            Module(gensym("JuystEval")),
-            evaluation_file,
-            evaluations,
-        )
-    end
-end
-
-function reset_module!(evs::EvaluationState)
-    evs.module = Module(gensym("JuystEval"))
+function reset_module!(js::JuystState)
+    js.module = Module(gensym("JuystEval"))
 end
 
 
@@ -60,16 +17,12 @@ function with_stdout_and_logger(
     end
 end
 
-struct StopRunning end
-struct ContinueRunning end
-const HowToProceed = Union{StopRunning, ContinueRunning}
-
-function handle_cell!(evs::EvaluationState, code_cell::CodeCell)::HowToProceed
+function handle_code_cell!(js::JuystState, code_cell::CodeCell)::HowToProceed
     should_skip = (
         # skipping requested
         !code_cell.recompute
         # we already computed this
-        && code_cell.id in keys(evs.evaluations)
+        && code_cell.id in keys(js.evaluations)
         # the code has not changed
         && evaluations[code_cell.id].code == code_cell.code
     )
@@ -81,10 +34,10 @@ function handle_cell!(evs::EvaluationState, code_cell::CodeCell)::HowToProceed
         return ContinueRunning()
     end
 
-    evs.reset!(logger)
-    computation = with_stdout_and_logger(; evs.stdout_file, evs.logger) do
+    js.reset!(logger)
+    computation = with_stdout_and_logger(; js.stdout_file, js.logger) do
         try
-            r = Core.eval(evs.eval_module, Meta.parseall(code_cell.code))
+            r = Core.eval(js.eval_module, Meta.parseall(code_cell.code))
             (result = r, failed = false)
         catch e
             (result = e, failed = true)
@@ -98,7 +51,7 @@ function handle_cell!(evs::EvaluationState, code_cell::CodeCell)::HowToProceed
     formatted_result = if code_cell.display || computation.failed
         find_best_representation(
             computation.result,
-            code_cell.preferred_mimes,
+            code_cell.preferredmimes,
             computation.failed
         )
     else
@@ -118,19 +71,18 @@ function handle_cell!(evs::EvaluationState, code_cell::CodeCell)::HowToProceed
         end
     end
 
-    evaluation = Evaluation(;
+    js.evaluations[code_cell.id] = Evaluation(;
         stdout = read(stdout_file, String),
         result = formatted_result,
         logs = copy(logger.logs),
         code = value["code"],
     )
-    evs.evaluations[code_cell.id] = evaluation
 
     ContinueRunning()
 end
 
-function write_cbor(evs::EvaluationState)
-    out_cbor = CBOR.encode(evs.evaluations)
-    write(evs.evaluation_file, out_cbor)
-    @info "Output written to file $(evs.evaluation_file)"
+function write_cbor(js::JuystState)
+    out_cbor = CBOR.encode(js.evaluations)
+    write(js.evaluation_file, out_cbor)
+    @info "Output written to file $(js.evaluation_file)"
 end

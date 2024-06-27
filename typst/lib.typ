@@ -36,7 +36,7 @@
 
     // box(inset: 3pt, fill: aqua, radius: 3pt)[#id]
     [#metadata((
-      preferred-mimes: preferred-mimes,
+      preferredmimes: preferred-mimes,
       code: it.text,
       id: id,
       display: display,
