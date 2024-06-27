@@ -13,10 +13,10 @@
   juyst-output-data.update(data)
 }
 
-#let jl-pkg(..pkgs) = {
+#let jl-pkg(cmd: "add", ..pkgs) = {
   let pkgs = pkgs.pos()
   assert(pkgs.all(pkg => type(pkg) == str))
-  [#metadata(pkgs) <juyst-pkg>]
+  [#metadata((cmd: cmd, pkgs: pkgs)) <juyst-data>]
 }
 
 #let jl-raw(
@@ -41,7 +41,7 @@
       id: id,
       display: display,
       recompute: recompute,
-    )) <juyst-julia-code>]
+    )) <juyst-data>]
 
 
     let ev = output.at(id, default: none)
