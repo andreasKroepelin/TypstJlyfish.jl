@@ -1,11 +1,14 @@
 @kwdef struct PkgState
-    add_pkgs::Vector{Pkg.PackageSpec}
-    dev_pkgs::Vector{Pkg.PackageSpec}
+    add_pkgs::Vector{Pkg.PackageSpec} = Pkg.PackageSpec[]
+    dev_pkgs::Vector{Pkg.PackageSpec} = Pkg.PackageSpec[]
+end
 
-    PkgState() = new(
-        Pkg.PackageSpec[],
-        Pkg.PackageSpec[],
-    )
+@kwdef struct CodeCell
+    code::String
+    id::String
+    display::Bool
+    recompute::Bool
+    preferredmimes::Vector{MIME}
 end
 
 @kwdef struct Evaluation
@@ -21,16 +24,17 @@ mutable struct JuystState
     previous_query_str::String
     pkg::PkgState
     prev_pkg::PkgState
+    code_cells::Vector{CodeCell}
     stdout_file::String
     logger::TypstLogger
     eval_module::Module
     evaluation_file::String
     evaluations::Dict{String, Evaluation}
 
-    function EvaluationState(;
+    function JuystState(;
         evaluation_file::String,
         typst_file::String,
-        typst_args::Vector{String}
+        typst_args::Vector{<: AbstractString}
     )
         if isfile(evaluation_file)
             evaluations = CBOR.decode(read(evaluation_file))
@@ -44,6 +48,7 @@ mutable struct JuystState
             "",
             PkgState(),
             PkgState(),
+            CodeCell[],
             tempname(),
             TypstLogger(),
             Module(gensym("JuystEval")),
@@ -52,12 +57,3 @@ mutable struct JuystState
         )
     end
 end
-
-@kwdef struct CodeCell
-    code::String
-    id::String
-    display::Bool
-    recompute::Bool
-    preferredmimes::Vector{MIME}
-end
-

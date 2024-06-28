@@ -7,15 +7,25 @@ import Pkg
 import FileWatching
 import Dates
 
+struct SkipCodeCell end
 struct StopRunning end
 struct ContinueRunning end
-const HowToProceed = Union{StopRunning, ContinueRunning}
+struct WaitForChange end
+const HowToProceed = Union{
+    SkipCodeCell,
+    StopRunning,
+    ContinueRunning,
+    WaitForChange,
+}
 
 macro short_circuit(e)
     quote
-        if $(esc(e)) isa StopRunning
-            hot_to_proceed = StopRunning()
-            break
+        let how_to_proceed = $(esc(e))
+            if how_to_proceed isa StopRunning
+                @goto esc(:stop_juyst)
+            elseif how_to_proceed isa WaitForChange
+                @goto esc(:wait_for_change)
+            end
         end
     end
 end
@@ -24,6 +34,7 @@ end
 include("output.jl")
 include("logging.jl")
 include("state.jl")
+include("pkg.jl")
 include("query.jl")
 include("evaluation.jl")
 
@@ -40,31 +51,39 @@ function run(
     juyst_state = JuystState(;
         evaluation_file,
         typst_file,
-        split(typst_args),
+        typst_args = split(typst_args),
     )
 
-    while how_to_proceed isa ContinueRunning
+    while true
         @info Dates.format(Dates.now(), "HH:MM:SS")
 
         if !isfile(evaluation_file)
-            write_cbor(evaluation_state)
+            write_cbor(juyst_state)
         end
 
-        @short_circuit typst_query!(juyst_state)
-        update_project(juyst_state)
-        reset_module!(evaluation_state)
+        try
+            typst_query!(juyst_state)
+            update_project(juyst_state)
+            reset_module!(juyst_state)
 
-        for code_cells in code_cells
-            @short_circuit handle_code_cell!(evaluation_state, code_cell)
+            run_evaluation!(juyst_state)
+
+            write_cbor(juyst_state)
+        catch e
+            if e isa StopRunning
+                break
+            elseif e isa WaitForChange
+            else
+                throw(e)
+            end
         end
 
-        write_cbor(evaluation_state)
-
+        @info "Waiting for input to change..."
         try
             FileWatching.watch_file(typst_file)
         catch e
             if e isa InterruptException
-                @short_circuit StopRunning()
+                break
             end
         end
     end

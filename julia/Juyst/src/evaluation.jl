@@ -1,5 +1,5 @@
 function reset_module!(js::JuystState)
-    js.module = Module(gensym("JuystEval"))
+    js.eval_module = Module(gensym("JuystEval"))
 end
 
 
@@ -17,7 +17,7 @@ function with_stdout_and_logger(
     end
 end
 
-function handle_code_cell!(js::JuystState, code_cell::CodeCell)::HowToProceed
+function handle_code_cell!(js::JuystState, code_cell::CodeCell)
     should_skip = (
         # skipping requested
         !code_cell.recompute
@@ -31,10 +31,10 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)::HowToProceed
             Skipping recomputation of code section with id $(code_cell.id):
             $(truncate_code(code_cell.code, 40))
         """
-        return ContinueRunning()
+        throw(SkipCodeCell())
     end
 
-    js.reset!(logger)
+    reset!(js.logger)
     computation = with_stdout_and_logger(; js.stdout_file, js.logger) do
         try
             r = Core.eval(js.eval_module, Meta.parseall(code_cell.code))
@@ -45,7 +45,7 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)::HowToProceed
     end
 
     if computation.failed && computation.result isa InterruptException
-        return StopRunning()
+        throw(StopRunning())
     end
 
     formatted_result = if code_cell.display || computation.failed
@@ -72,13 +72,25 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)::HowToProceed
     end
 
     js.evaluations[code_cell.id] = Evaluation(;
-        stdout = read(stdout_file, String),
+        stdout = read(js.stdout_file, String),
         result = formatted_result,
-        logs = copy(logger.logs),
-        code = value["code"],
+        logs = copy(js.logger.logs),
+        code = code_cell.code,
     )
+end
 
-    ContinueRunning()
+function run_evaluation!(js::JuystState)
+    for code_cell in js.code_cells
+        try
+            handle_code_cell!(js, code_cell)
+        catch e
+            if e isa SkipCodeCell
+                continue
+            else
+                throw(e)
+            end
+        end
+    end
 end
 
 function write_cbor(js::JuystState)
