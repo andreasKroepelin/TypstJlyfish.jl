@@ -71,12 +71,12 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
         end
     end
 
-    js.evaluations[code_cell.id] = Evaluation(;
+    set!(js.evaluations, code_cell.id, Evaluation(;
         stdout = read(js.stdout_file, String),
         result = formatted_result,
         logs = copy(js.logger.logs),
         code = code_cell.code,
-    )
+    ))
 end
 
 function run_evaluation!(js::JuystState)
@@ -94,7 +94,7 @@ function run_evaluation!(js::JuystState)
 end
 
 function write_cbor(js::JuystState)
-    out_cbor = CBOR.encode(js.evaluations)
+    out_cbor = js.evaluations .|> to_dict |> pairs |> Dict |> CBOR.encode
     write(js.evaluation_file, out_cbor)
     @info "Output written to file $(js.evaluation_file)"
 end

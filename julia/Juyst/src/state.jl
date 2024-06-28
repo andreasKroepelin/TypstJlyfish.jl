@@ -29,6 +29,17 @@ end
     code::String
 end
 
+to_dict(e::Evaluation) = Dict(
+    (f => getfield(e, f) for f in fieldnames(Evaluation))
+)
+
+Evaluation(dict::AbstractDictionary) = Evaluation(;(
+    Symbol(k) => v
+    for (k, v) in pairs(dict)
+)...)
+Evaluation(nt::NamedTuple) = Evaluation(; nt...)
+
+
 mutable struct JuystState
     typst_file::String
     typst_args::Vector{String}
@@ -40,7 +51,7 @@ mutable struct JuystState
     logger::TypstLogger
     eval_module::Module
     evaluation_file::String
-    evaluations::Dict{String, Evaluation}
+    evaluations::Dictionary{String, Evaluation}
 
     function JuystState(;
         evaluation_file::String,
@@ -48,9 +59,9 @@ mutable struct JuystState
         typst_args::Vector{<: AbstractString}
     )
         if isfile(evaluation_file)
-            evaluations = CBOR.decode(read(evaluation_file))
+            evaluations = evaluation_file |> read |> CBOR.decode |> Dictionary .|> Evaluation
         else
-            evaluations = Dict{String, Evaluation}()
+            evaluations = Dictionary{String, Evaluation}()
         end
 
         new(

@@ -6,6 +6,7 @@ import JSON3
 import Pkg
 import FileWatching
 import Dates
+using Dictionaries
 
 struct SkipCodeCell end
 struct StopRunning end
@@ -17,19 +18,6 @@ const HowToProceed = Union{
     ContinueRunning,
     WaitForChange,
 }
-
-macro short_circuit(e)
-    quote
-        let how_to_proceed = $(esc(e))
-            if how_to_proceed isa StopRunning
-                @goto esc(:stop_juyst)
-            elseif how_to_proceed isa WaitForChange
-                @goto esc(:wait_for_change)
-            end
-        end
-    end
-end
-
 
 include("output.jl")
 include("logging.jl")
@@ -84,6 +72,8 @@ function run(
         catch e
             if e isa InterruptException
                 break
+            else
+                throw(e)
             end
         end
     end
