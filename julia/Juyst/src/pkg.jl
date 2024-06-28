@@ -1,20 +1,25 @@
-function add_and_rm(pkgs_new, pkgs_old, f)
-    # `setdiff` would be more straight forward but it somehow behaves strangely
-    # here...
-    pkg_to_add = filter(!in(pkgs_old), pkgs_new)
-    pkg_to_rm  = filter(!in(pkgs_new), pkgs_old)
-    isempty(pkg_to_add) || f(pkg_to_add)
-    isempty(pkg_to_rm)  || Pkg.rm(pkg_to_rm)
+function if_not_empty(f, pkgs)
+    if !isempty(pkgs)
+        f(collect(pkgs))
+    end
 end
 
 function update_project(js::JuystState)
     (; pkg, prev_pkg) = js
-    try
-        add_and_rm(pkg.add_pkgs, prev_pkg.add_pkgs, Pkg.add)
-        add_and_rm(pkg.dev_pkgs, prev_pkg.dev_pkgs, Pkg.develop)
-    catch e
-        message = string(e)
-        @error "Updating package dependencies failed!" message
-        throw(WaitForChange())
+    if pkg != prev_pkg
+        currently_installed = [
+            Pkg.PackageSpec(name, uuid)
+            for (name, uuid)
+            in Pkg.project().dependencies |> pairs
+        ]
+        if_not_empty(Pkg.rm, currently_installed)
+        try
+            if_not_empty(Pkg.add, pkg.add_pkgs)
+            if_not_empty(Pkg.develop, pkg.dev_pkgs)
+        catch e
+            message = string(e)
+            @error "Updating package dependencies failed!" message
+            throw(WaitForChange())
+        end
     end
 end

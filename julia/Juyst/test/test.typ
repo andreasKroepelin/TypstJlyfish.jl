@@ -1,7 +1,7 @@
 #import "../../../typst/lib.typ": *
 
 #jl-pkg("Example", "Random")
-// #jl-pkg(cmd: "add", "LinearAlgebra")
+#jl-pkg(cmd: "dev", "..")
 
 #jl(`1 + 1 `)
 

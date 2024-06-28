@@ -3,6 +3,17 @@
     dev_pkgs::Vector{Pkg.PackageSpec} = Pkg.PackageSpec[]
 end
 
+function Base.:(==)(p::PkgState, q::PkgState)
+    # necessary because `hash` behaves unexpectedly with `PackageSpec`
+    function vec_set_eq(a, b)
+        # use `reshape` instead of `transpose` because it is not recursive
+        eq = b .== reshape(a, 1, :)
+        all(any(eq, dims = 1)) && all(any(eq, dims = 2))
+    end
+
+    vec_set_eq(p.add_pkgs, q.add_pkgs) && vec_set_eq(p.dev_pkgs, q.dev_pkgs)
+end
+
 @kwdef struct CodeCell
     code::String
     id::String

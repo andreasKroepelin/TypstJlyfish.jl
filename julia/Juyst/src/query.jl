@@ -40,13 +40,20 @@ function typst_query!(js::JuystState)
             push!(js.code_cells, code_cell)
         elseif haskey(qi, :pkgs) && haskey(qi, :cmd)
             if qi.pkgs isa AbstractVector && qi.cmd isa AbstractString
-                pkgs = Pkg.REPLMode.parse_package(
-                    Pkg.REPLMode.QString.(qi.pkgs, false),
-                    nothing
-                )
+                pkgs = try
+                    Pkg.REPLMode.parse_package(
+                        Pkg.REPLMode.QString.(qi.pkgs, false),
+                        nothing;
+                        add_or_dev = true,
+                    )
+                catch e
+                    message = string(e)
+                    @error "Failed to parse package names." message
+                    throw(WaitForChange())
+                end
                 if qi.cmd == "add"
                     append!(js.pkg.add_pkgs, pkgs)
-                elseif qi.cmd == "dev"
+                elseif qi.cmd in ("dev", "develop")
                     append!(js.pkg.dev_pkgs, pkgs)
                 end
             end
