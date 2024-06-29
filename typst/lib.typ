@@ -1,3 +1,5 @@
+#import "@preview/based:0.1.0": base64
+
 #let juyst-output-data = state("juyst-output-data", (:))
 #let juyst-code-counter = counter("juyst-code-counter")
 
@@ -88,7 +90,7 @@
       } else if result.mime == "image/svg+xml" {
         "svg"
       }
-      image.decode(result.data, format: format)
+      image.decode(base64.decode(result.data), format: format)
     } else {
       panic("Unsupported MIME type: " + result.mime)
     }
