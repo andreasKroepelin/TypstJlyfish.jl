@@ -60,13 +60,13 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
             FormattedResult(
                 data = computation.result,
                 failed = false,
-                mime = MIME""(),
+                mime = "",
             )
         else
             FormattedResult(
                 data => "Illegal type: $T",
                 failed => true,
-                mime => MIME"text/plain",
+                mime => "text/plain",
             )
         end
     end
@@ -91,6 +91,20 @@ function run_evaluation!(js::JuystState)
             end
         end
     end
+end
+
+function execute!(js::JuystState)
+    if !isfile(js.evaluation_file)
+        write_json(js)
+    end
+
+    typst_query!(js)
+    update_project(js)
+    reset_module!(js)
+
+    run_evaluation!(js)
+
+    write_json(js)
 end
 
 function write_json(js::JuystState)

@@ -26,14 +26,12 @@ include("query.jl")
 include("evaluation.jl")
 
 
-function run(
+function watch(
     typst_file;
     typst_args = "",
     evaluation_file = default_output_file(typst_file),
 )
     Pkg.activate(mktempdir(prefix = "juyst-eval"))
-
-    how_to_proceed::HowToProceed = ContinueRunning()
 
     juyst_state = JuystState(;
         evaluation_file,
@@ -44,18 +42,8 @@ function run(
     while true
         @info Dates.format(Dates.now(), "HH:MM:SS")
 
-        if !isfile(evaluation_file)
-            write_json(juyst_state)
-        end
-
         try
-            typst_query!(juyst_state)
-            update_project(juyst_state)
-            reset_module!(juyst_state)
-
-            run_evaluation!(juyst_state)
-
-            write_json(juyst_state)
+            execute!(juyst_state)
         catch e
             if e isa StopRunning
                 break
@@ -78,6 +66,51 @@ function run(
     end
 
     @info "Stopping Juyst. Bye!"
+end
+
+function compile(
+    typst_file;
+    typst_args = "",
+    evaluation_file = default_output_file(typst_file),
+)
+    Pkg.activate(mktempdir(prefix = "juyst-eval"))
+
+    juyst_state = JuystState(;
+        evaluation_file,
+        typst_file,
+        typst_args = split(typst_args),
+    )
+
+    try
+        execute!(juyst_state)
+    catch e
+        if e isa StopRunning
+            return
+        elseif e isa WaitForChange
+        else
+            throw(e)
+        end
+    end
+
+    compile_cmd = ```
+        $(Typst_jll.typst())
+        compile
+        $(juyst_state.typst_args)
+        $(juyst_state.typst_file)
+    ```
+    @info "Compiling document..."
+    try
+        run(compile_cmd)
+    catch e
+        if e isa InterruptException
+        elseif e isa ProcessFailedException
+            @info "Typst compile failed."
+        else
+            throw(e)
+        end
+    end
+
+    @info "Done."
 end
 
 end

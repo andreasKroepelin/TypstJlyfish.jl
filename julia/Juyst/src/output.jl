@@ -1,5 +1,5 @@
 @kwdef struct FormattedResult
-    mime::MIME
+    mime::String
     failed::Bool
     data::String
 end
@@ -31,12 +31,12 @@ function find_best_representation(result, preferred_mimes, failed)
         else
             base64encode(bytes)
         end
-        return FormattedResult(; mime, data, failed)
+        return FormattedResult(; mime = string(mime), data, failed)
     end
 
     # no MIME worked
     FormattedResult(
-        mime = MIME"text/plain"(),
+        mime = "text/plain",
         data = "!! Result could not be displayed !!",
         failed = true
     )
