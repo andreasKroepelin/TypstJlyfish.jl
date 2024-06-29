@@ -1,12 +1,10 @@
 module Juyst
 
 import Typst_jll
-import CBOR
 import JSON3
 import Pkg
 import FileWatching
 import Dates
-using Dictionaries
 
 struct SkipCodeCell end
 struct StopRunning end
@@ -30,7 +28,7 @@ include("evaluation.jl")
 function run(
     typst_file;
     typst_args = "",
-    evaluation_file = default_cbor_file(typst_file),
+    evaluation_file = default_json_file(typst_file),
 )
     Pkg.activate(mktempdir(prefix = "juyst-eval"))
 
@@ -46,7 +44,7 @@ function run(
         @info Dates.format(Dates.now(), "HH:MM:SS")
 
         if !isfile(evaluation_file)
-            write_cbor(juyst_state)
+            write_json(juyst_state)
         end
 
         try
@@ -56,7 +54,7 @@ function run(
 
             run_evaluation!(juyst_state)
 
-            write_cbor(juyst_state)
+            write_json(juyst_state)
         catch e
             if e isa StopRunning
                 break

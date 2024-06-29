@@ -1,7 +1,7 @@
 @kwdef struct FormattedResult
     mime::MIME
     failed::Bool
-    data::Any
+    data::String
 end
 
 
@@ -25,11 +25,12 @@ function find_best_representation(result, preferred_mimes, failed)
         iob = IOBuffer()
         @invokelatest show(iob, mime, result)
         bytes = take!(iob)
-        return FormattedResult(;
-            mime,
-            data = startswith(string(mime), "text/") ? String(bytes) : bytes,
-            failed,
-        )
+        data = if istextmime(mime)
+            String(bytes)
+        else
+            base64encode(bytes)
+        end
+        return FormattedResult(; mime, data, failed)
     end
 
     # no MIME worked
@@ -41,7 +42,7 @@ function find_best_representation(result, preferred_mimes, failed)
     
 end
 
-function is_allowed_type(T)
+function is_serialisable_type(T)
     valtype(::Type{Dict{String, V}}) where V = V
     primitives = [
         String, Integer, Bool, Char, Float64, Float32, Nothing
@@ -49,9 +50,9 @@ function is_allowed_type(T)
     if any(T .<: primitives)
         return true
     elseif T <: Vector
-        return is_allowed_type(eltype(T))
+        return is_serialisable_type(eltype(T))
     elseif T <: Dict{String}
-        return is_allowed_type(valtype(T))
+        return is_serialisable_type(valtype(T))
     else
         return false
     end
@@ -67,9 +68,9 @@ function truncate_code(code, n)
 end
 
 
-function default_cbor_file(typst_file)
+function default_output_file(typst_file)
     @assert endswith(typst_file, ".typ") "given Typst file does not end with .typ"
     base, _suffix = splitext(typst_file)
-    base * "-juyst.cbor"
+    base * "-juyst.json"
 end
 

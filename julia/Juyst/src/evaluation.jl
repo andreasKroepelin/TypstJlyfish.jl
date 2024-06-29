@@ -93,8 +93,8 @@ function run_evaluation!(js::JuystState)
     end
 end
 
-function write_cbor(js::JuystState)
-    out_cbor = js.evaluations .|> to_dict |> pairs |> Dict |> CBOR.encode
-    write(js.evaluation_file, out_cbor)
+function write_json(js::JuystState)
+    out_json = JSON3.write(js.evaluations)
+    write(js.evaluation_file, out_json)
     @info "Output written to file $(js.evaluation_file)"
 end

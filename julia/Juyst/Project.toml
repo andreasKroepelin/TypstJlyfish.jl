@@ -4,12 +4,10 @@ authors = ["Andreas Kröpelin <andreas-kroepelin@gmx.de>"]
 version = "0.1.0"
 
 [deps]
-CBOR = "7f3e1038-61bc-5414-967e-017c9d82adda"
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
-Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 FileWatching = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 Typst_jll = "eb4b1da6-20f6-5c66-9826-fdb8ad410d0e"
