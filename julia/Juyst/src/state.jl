@@ -19,7 +19,7 @@ end
     id::String
     display::Bool
     recompute::Bool
-    preferredmimes::Vector{MIME}
+    preferredmimes::Vector{String}
 end
 
 @kwdef struct Evaluation

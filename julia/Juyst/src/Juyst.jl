@@ -2,6 +2,7 @@ module Juyst
 
 import Typst_jll
 import JSON3
+using Base64
 import Pkg
 import FileWatching
 import Dates
@@ -28,7 +29,7 @@ include("evaluation.jl")
 function run(
     typst_file;
     typst_args = "",
-    evaluation_file = default_json_file(typst_file),
+    evaluation_file = default_output_file(typst_file),
 )
     Pkg.activate(mktempdir(prefix = "juyst-eval"))
 

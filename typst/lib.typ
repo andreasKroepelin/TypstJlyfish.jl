@@ -83,14 +83,19 @@
     } else if result.mime == "text/typst" {
       eval(result.data, mode: "markup")
     } else if result.mime.starts-with("image/") {
-      let format = if result.mime == "image/png" {
-        "png"
+      let format = "unknown format"
+      let img-data = ()
+      if result.mime == "image/png" {
+        format = "png"
+        img-data = base64.decode(result.data)
       } else if result.mime == "image/jpg" {
-        "jpg"
+        format = "jpg"
+        img-data = base64.decode(result.data)
       } else if result.mime == "image/svg+xml" {
-        "svg"
+        format = "svg"
+        img-data = result.data
       }
-      image.decode(base64.decode(result.data), format: format)
+      image.decode(img-data, format: format)
     } else {
       panic("Unsupported MIME type: " + result.mime)
     }
@@ -134,7 +139,7 @@
     )
 
     let display-log(log) = {
-      let icon = icons.find(it => log.level >= it.min)
+      let icon = icons.find(it => log.level.level >= it.min)
 
       (
         text(fill: gray, weight: "bold")[log],

@@ -71,12 +71,12 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
         end
     end
 
-    set!(js.evaluations, code_cell.id, Evaluation(;
+    js.evaluations[code_cell.id] = Evaluation(;
         stdout = read(js.stdout_file, String),
         result = formatted_result,
         logs = copy(js.logger.logs),
         code = code_cell.code,
-    ))
+    )
 end
 
 function run_evaluation!(js::JuystState)

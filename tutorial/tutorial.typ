@@ -20,7 +20,7 @@
 )
 #show link: it => underline(text(fill: blue, it))
 
-#read-julia-output(cbor("tutorial-juyst.cbor"))
+#read-julia-output(json("tutorial-juyst.json"))
 
 #text(size: 4em, fill: blue, font: "Alegreya")[Juyst]
 #linebreak()
@@ -147,7 +147,7 @@ What is three plus five?
 
 Let's plot something!
 
-#set image(width: 20em)
+#set image(width: 100%)
 #jl(```julia
   using Plots
   plot(pi .* (-3:.01:3), sin, legend = nothing)

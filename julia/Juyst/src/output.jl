@@ -6,20 +6,21 @@ end
 
 
 function find_best_representation(result, preferred_mimes, failed)
-    mimes = MIME.([
+    mimes = [
         "text/typst",
         "image/svg+xml",
         "image/png",
         "image/jpg",
         "text/plain",
-    ])
+    ]
     preference(m) = something(
-        findfirst(==(string(m)), preferred_mimes),
+        findfirst(==(m), preferred_mimes),
         length(preferred_mimes) + 1
     )
     sort!(mimes, by = preference)
 
     for mime in mimes
+        mime = MIME(mime)
         (@invokelatest showable(mime, result)) || continue
 
         iob = IOBuffer()
