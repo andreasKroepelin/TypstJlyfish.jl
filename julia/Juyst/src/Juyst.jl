@@ -70,7 +70,8 @@ end
 
 function compile(
     typst_file;
-    typst_args = "",
+    typst_query_args = "",
+    typst_compile_args = "",
     evaluation_file = default_output_file(typst_file),
 )
     Pkg.activate(mktempdir(prefix = "juyst-eval"))
@@ -78,7 +79,7 @@ function compile(
     juyst_state = JuystState(;
         evaluation_file,
         typst_file,
-        typst_args = split(typst_args),
+        typst_args = split(typst_query_args),
     )
 
     try
@@ -95,7 +96,7 @@ function compile(
     compile_cmd = ```
         $(Typst_jll.typst())
         compile
-        $(juyst_state.typst_args)
+        $(split(typst_compile_args))
         $(juyst_state.typst_file)
     ```
     @info "Compiling document..."
