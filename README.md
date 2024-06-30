@@ -3,6 +3,11 @@
 Juyst is a package for Julia and Typst that allows you to integrate Julia
 computations in your Typst document.
 
+[![Static Badge](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/andreasKroepelin/juyst/wiki)
+![GitHub License](https://img.shields.io/github/license/andreasKroepelin/juyst)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/andreasKroepelin/juyst)
+[![GitHub Repo stars](https://img.shields.io/github/stars/andreasKroepelin/juyst)](https://github.com/andreasKroepelin/juyst)
+
 > [!NOTE]
 > Juyst works but is currently neither officially registered as a Julia or
 > Typst package, nor is this readme complete.
@@ -17,6 +22,10 @@ does for Python and LaTeX.
 Note that this is different from tools like [Quarto](https://quarto.org/) where
 you write documents in Markdown, also integrate some Julia code, but then might
 use Typst only as a backend to produce the final document.
+
+See below for a quick introduction or read the
+[wiki](https://github.com/andreasKroepelin/juyst/wiki) for an in depth
+explanation.
 
 # Getting started
 
