@@ -142,10 +142,11 @@
       let icon = icons.find(it => log.level.level >= it.min)
 
       (
-        text(fill: gray, weight: "bold")[log],
-        // text(fill: icon.color, weight: "bold", icon.text),
+        // text(fill: gray, weight: "bold")[log],
+        text(fill: icon.color, weight: "bold", icon.text),
         align(bottom, {
-          text(size: .8em, eval(log.message, mode: "markup"))
+          text(size: .8em, log.message)
+          // text(size: .8em, eval(log.message, mode: "markup"))
           display-attachments(log.attached)
         })
       )

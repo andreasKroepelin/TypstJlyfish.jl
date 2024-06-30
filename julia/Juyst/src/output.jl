@@ -1,7 +1,7 @@
 @kwdef struct FormattedResult
     mime::String
     failed::Bool
-    data::String
+    data::Any
 end
 
 

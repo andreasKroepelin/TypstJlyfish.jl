@@ -24,7 +24,7 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
         # we already computed this
         && code_cell.id in keys(js.evaluations)
         # the code has not changed
-        && evaluations[code_cell.id].code == code_cell.code
+        && js.evaluations[code_cell.id].code == code_cell.code
     )
     if should_skip
         @info """
@@ -56,7 +56,7 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
         )
     else
         T = typeof(computation.result)
-        if is_allowed_type(T)
+        if is_serialisable_type(T)
             FormattedResult(
                 data = computation.result,
                 failed = false,
