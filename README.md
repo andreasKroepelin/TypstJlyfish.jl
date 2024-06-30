@@ -70,9 +70,7 @@ Just to show what is possible with Juyst:
 
 ![demo](examples/demo.svg)
 
-<details>
-<summary>Show code</summary>
-````
+````typ
 #import "@preview/juyst:0.1.0": *
 
 #set page(width: auto, height: auto, margin: 1em)
@@ -167,4 +165,3 @@ Just to show what is possible with Juyst:
   ]
 )
 ````
-</details>
