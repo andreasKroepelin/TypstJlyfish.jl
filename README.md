@@ -72,7 +72,7 @@ Just to show what is possible with Juyst:
 
 <details>
 <summary>Show code</summary>
-````typ
+````
 #import "@preview/juyst:0.1.0": *
 
 #set page(width: auto, height: auto, margin: 1em)
@@ -136,7 +136,6 @@ Just to show what is possible with Juyst:
       stack(dir: ltr, ..bars)
     }
 
-    // #jl-raw(fn: repr, ```julia
     #jl-raw(fn: it => barchart(it.result.data), ```julia
       p = .5
       n = 40

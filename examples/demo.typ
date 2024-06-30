@@ -61,7 +61,6 @@
       stack(dir: ltr, ..bars)
     }
 
-    // #jl-raw(fn: repr, ```julia
     #jl-raw(fn: it => barchart(it.result.data), ```julia
       p = .5
       n = 40
