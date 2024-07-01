@@ -6,6 +6,13 @@ end
 
 
 function find_best_representation(result, preferred_mimes, failed)
+    if failed && result isa Exception
+        iob = IOBuffer()
+        @invokelatest showerror(iob, result)
+
+        data = String(take!(iob))
+        return FormattedResult(; mime = "text/plain", data, failed)
+    end
     mimes = [
         "text/typst",
         "image/svg+xml",
