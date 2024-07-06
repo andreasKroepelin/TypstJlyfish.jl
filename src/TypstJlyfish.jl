@@ -1,4 +1,4 @@
-module Juyst
+module TypstJlyfish
 
 import Typst_jll
 import JSON3
