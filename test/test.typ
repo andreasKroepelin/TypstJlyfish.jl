@@ -1,4 +1,4 @@
-#import "../../../typst/lib.typ": *
+#import "../typst/lib.typ": *
 
 #jl-pkg("Example", "Random")
 #jl-pkg(cmd: "dev", "..")

@@ -1,7 +1,7 @@
-import Juyst
+import TypstJlyfish
 
-Juyst.run(
+TypstJlyfish.watch(
     "test.typ";
-    typst_args = "--root ../../..",
+    typst_args = "--root ..",
     evaluation_file = tempname(),
 )
