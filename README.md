@@ -1,20 +1,20 @@
 ![logo](assets/jellyfish.svg)
 
-Juyst is a package for Julia and Typst that allows you to integrate Julia
+Jlyfish is a package for Julia and Typst that allows you to integrate Julia
 computations in your Typst document.
 
-[![Static Badge](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/andreasKroepelin/juyst/wiki)
-![GitHub License](https://img.shields.io/github/license/andreasKroepelin/juyst)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/andreasKroepelin/juyst)
-[![GitHub Repo stars](https://img.shields.io/github/stars/andreasKroepelin/juyst)](https://github.com/andreasKroepelin/juyst)
+[![Static Badge](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/andreasKroepelin/TypstJlyfish.jl/wiki)
+![GitHub License](https://img.shields.io/github/license/andreasKroepelin/TypstJlyfish.jl)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/andreasKroepelin/TypstJlyfish.jl)
+[![GitHub Repo stars](https://img.shields.io/github/stars/andreasKroepelin/TypstJlyfish.jl)](https://github.com/andreasKroepelin/TypstJlyfish.jl)
 
 > [!NOTE]
-> Juyst works but is currently neither officially registered as a Julia or
+> Jlyfish works but is currently neither officially registered as a Julia or
 > Typst package, nor is this readme complete.
 > If you know your way around Julia and Typst you will find ways to try it out,
 > I guess :)
 
-You should use Juyst if you want to write a Typst document and have some of the
+You should use Jlyfish if you want to write a Typst document and have some of the
 content automatically produced but want the source code for that within your
 document source.
 It fills a similar role as [PythonTeX](https://github.com/gpoore/pythontex)
@@ -24,44 +24,45 @@ you write documents in Markdown, also integrate some Julia code, but then might
 use Typst only as a backend to produce the final document.
 
 See below for a quick introduction or read the
-[wiki](https://github.com/andreasKroepelin/juyst/wiki) for an in depth
+[wiki](https://github.com/andreasKroepelin/TypstJlyfish.jl/wiki) for an in depth
 explanation.
 
 # Getting started
 
-Since Juyst builds a bridge between Julia and Typst, we also have to get two
+Since Jlyfish builds a bridge between Julia and Typst, we also have to get two
 things running.
-First, install the Julia package `Juyst` from the general registry by executing
+First, install the Julia package `TypstJlyfish` from the general registry by
+executing
 ```julia-repl
 julia> ]
 
-(@v1.10) pkg> add Juyst
+(@v1.10) pkg> add TypstJlyfish
 ```
 You only have to do this once.
 (It is like installing and using the Pluto notebook system, if you are familiar
 with that.)
 
-When you want to use Juyst in a Typst document (say, `your-document.typ`),
+When you want to use Jlyfish in a Typst document (say, `your-document.typ`),
 add the following line at the top:
 ```typ
-#import "@preview/juyst:0.1.0": *
+#import "@preview/jlyfish:0.1.0": *
 ```
 Then, open a Julia REPL and run
 ```julia-repl
-julia> import Juyst
+julia> import TypstJlyfish
 
-julia> Juyst.watch("your-document.typ")
+julia> TypstJlyfish.watch("your-document.typ")
 ```
 
-Juyst facilitates the communication between Julia and Typst via a JSON file.
-By default, Juyst uses the name of your document and adds a `-juyst.json`, so
-`your-document.typ` would become `your-document-juyst.json`.
+Jlyfish facilitates the communication between Julia and Typst via a JSON file.
+By default, Jlyfish uses the name of your document and adds a `-jlyfish.json`,
+so `your-document.typ` would become `your-document-jlyfish.json`.
 This can be configured, of course.
 
 To let Typst know of the computed data in the JSON file, add the following line
 to your document:
 ```typ
-#read-julia-output(json("your-document-juyst.json"))
+#read-julia-output(json("your-document-jlyfish.json"))
 ```
 
 You can then place some Julia code in your Typst source using the `#jl`
@@ -70,23 +71,23 @@ function:
 What is the sum of the whole numbers from one to a hundred? #jl(`sum(1:100)`)
 ```
 
-Head over to the [wiki](https://github.com/andreasKroepelin/juyst/wiki) to
-learn more!
+Head over to the [wiki](https://github.com/andreasKroepelin/TypstJlyfish.jl/wiki)
+to learn more!
 
 # Showcase
 
-Just to show what is possible with Juyst:
+Just to show what is possible with Jlyfish:
 
 ![demo](examples/demo.svg)
 
 ````typ
-#import "@preview/juyst:0.1.0": *
+#import "@preview/jlyfish:0.1.0": *
 
 #set page(width: auto, height: auto, margin: 1em)
 #set text(font: "Alegreya Sans")
 #let note = text.with(size: .7em, fill: luma(100), style: "italic")
 
-#read-julia-output(json("demo-juyst.json"))
+#read-julia-output(json("demo-jlyfish.json"))
 #jl-pkg("Colors", "Typstry", "Makie", "CairoMakie", "SummaryTables")
 
 #grid(
