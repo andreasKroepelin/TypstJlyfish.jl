@@ -1,7 +1,7 @@
 #import "@preview/based:0.1.0": base64
 
-#let juyst-output-data = state("juyst-output-data", (:))
-#let juyst-code-counter = counter("juyst-code-counter")
+#let jlyfish-output-data = state("jlyfish-output-data", (:))
+#let jlyfish-code-counter = counter("jlyfish-code-counter")
 
 #let read-julia-output(data) = {
   assert.eq(type(data), dictionary)
@@ -12,13 +12,13 @@
     }
   }
   
-  juyst-output-data.update(data)
+  jlyfish-output-data.update(data)
 }
 
 #let jl-pkg(cmd: "add", ..pkgs) = {
   let pkgs = pkgs.pos()
   assert(pkgs.all(pkg => type(pkg) == str))
-  [#metadata((cmd: cmd, pkgs: pkgs)) <juyst-data>]
+  [#metadata((cmd: cmd, pkgs: pkgs)) <jlyfish-data>]
 }
 
 #let jl-raw(
@@ -33,8 +33,8 @@
   }
 
   context {
-    let id = str(juyst-code-counter.get().first())
-    let output = juyst-output-data.get()
+    let id = str(jlyfish-code-counter.get().first())
+    let output = jlyfish-output-data.get()
 
     // box(inset: 3pt, fill: aqua, radius: 3pt)[#id]
     [#metadata((
@@ -43,7 +43,7 @@
       id: id,
       display: display,
       recompute: recompute,
-    )) <juyst-data>]
+    )) <jlyfish-data>]
 
 
     let ev = output.at(id, default: none)
@@ -57,7 +57,7 @@
     }
   }
 
-  juyst-code-counter.step()
+  jlyfish-code-counter.step()
 }
 
 #let jl(
