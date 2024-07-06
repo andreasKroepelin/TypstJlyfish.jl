@@ -1,6 +1,6 @@
 #import "../typst/lib.typ": *
 
-#read-julia-output(cbor("typstry-juyst.cbor"))
+#read-julia-output(json("typstry-jlyfish.json"))
 
 #jl-pkg("Typstry")
 

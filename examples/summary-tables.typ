@@ -2,7 +2,7 @@
 
 #set page(height: auto, width: auto, margin: 1em)
 
-#read-julia-output(cbor("summary-tables-juyst.cbor"))
+#read-julia-output(json("summary-tables-jlyfish.json"))
 
 #jl-pkg("SummaryTables")
 

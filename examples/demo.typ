@@ -4,7 +4,7 @@
 #set text(font: "Alegreya Sans")
 #let note = text.with(size: .7em, fill: luma(100), style: "italic")
 
-#read-julia-output(json("demo-juyst.json"))
+#read-julia-output(json("demo-jlyfish.json"))
 #jl-pkg("Colors", "Typstry", "Makie", "CairoMakie", "SummaryTables")
 
 #grid(

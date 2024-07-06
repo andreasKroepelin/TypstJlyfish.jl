@@ -1,6 +1,6 @@
 #import "../typst/lib.typ": *
 
-#read-julia-output(cbor("long-juyst.cbor"))
+#read-julia-output(json("long-jlyfish.json"))
 
 #jl(recompute: false, ```julia
   seconds = @elapsed sleep(10)

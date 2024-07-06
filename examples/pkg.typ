@@ -1,7 +1,7 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "../typst/lib.typ": *
 
-#read-julia-output(cbor("pkg-juyst.cbor"))
+#read-julia-output(json("pkg-jlyfish.json"))
 
 #jl-pkg("Example@0.4", "Plots")
 
