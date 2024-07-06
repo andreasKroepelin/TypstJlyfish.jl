@@ -1,5 +1,5 @@
-function reset_module!(js::JuystState)
-    js.eval_module = Module(gensym("JuystEval"))
+function reset_module!(js::JlyfishState)
+    js.eval_module = Module(gensym("JlyfishEval"))
 end
 
 
@@ -17,7 +17,7 @@ function with_stdout_and_logger(
     end
 end
 
-function handle_code_cell!(js::JuystState, code_cell::CodeCell)
+function handle_code_cell!(js::JlyfishState, code_cell::CodeCell)
     should_skip = (
         # skipping requested
         !code_cell.recompute
@@ -79,7 +79,7 @@ function handle_code_cell!(js::JuystState, code_cell::CodeCell)
     )
 end
 
-function run_evaluation!(js::JuystState)
+function run_evaluation!(js::JlyfishState)
     for code_cell in js.code_cells
         try
             handle_code_cell!(js, code_cell)
@@ -93,7 +93,7 @@ function run_evaluation!(js::JuystState)
     end
 end
 
-function execute!(js::JuystState)
+function execute!(js::JlyfishState)
     if !isfile(js.evaluation_file)
         write_json(js)
     end
@@ -107,7 +107,7 @@ function execute!(js::JuystState)
     write_json(js)
 end
 
-function write_json(js::JuystState)
+function write_json(js::JlyfishState)
     out_json = JSON3.write(js.evaluations)
     write(js.evaluation_file, out_json)
     @info "Output written to file $(js.evaluation_file)"

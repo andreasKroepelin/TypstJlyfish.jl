@@ -79,6 +79,6 @@ end
 function default_output_file(typst_file)
     @assert endswith(typst_file, ".typ") "given Typst file does not end with .typ"
     base, _suffix = splitext(typst_file)
-    base * "-juyst.json"
+    base * "-jlyfish.json"
 end
 

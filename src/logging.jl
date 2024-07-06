@@ -6,16 +6,16 @@ import Logging
     attached::Dict{String, FormattedResult}
 end
 
-struct TypstLogger <: Logging.AbstractLogger
+struct JlyfishLogger <: Logging.AbstractLogger
     logs::Vector{Log}
 
-    TypstLogger() = new(Log[])
+    JlyfishLogger() = new(Log[])
 end
 
-reset!(logger::TypstLogger) = empty!(logger.logs)
+reset!(logger::JlyfishLogger) = empty!(logger.logs)
 
 function Logging.handle_message(
-    logger::TypstLogger, 
+    logger::JlyfishLogger, 
     level, message, _module, group, id, file, line; kwargs...
 )
     processed_kwargs = Dict(
@@ -32,6 +32,6 @@ function Logging.handle_message(
     )
 end
 
-Logging.shouldlog(::TypstLogger, level, _module, group, id) = level >= Logging.Info
-Logging.min_enabled_level(::TypstLogger) = Logging.Info
+Logging.shouldlog(::JlyfishLogger, level, _module, group, id) = level >= Logging.Info
+Logging.min_enabled_level(::JlyfishLogger) = Logging.Info
 

@@ -30,7 +30,7 @@ end
 end
 
 
-mutable struct JuystState
+mutable struct JlyfishState
     typst_file::String
     typst_args::Vector{String}
     previous_query_str::String
@@ -38,12 +38,12 @@ mutable struct JuystState
     prev_pkg::PkgState
     code_cells::Vector{CodeCell}
     stdout_file::String
-    logger::TypstLogger
+    logger::JlyfishLogger
     eval_module::Module
     evaluation_file::String
     evaluations::Dict{String, Evaluation}
 
-    function JuystState(;
+    function JlyfishState(;
         evaluation_file::String,
         typst_file::String,
         typst_args::Vector{<: AbstractString}
@@ -63,8 +63,8 @@ mutable struct JuystState
             PkgState(),
             CodeCell[],
             tempname(),
-            TypstLogger(),
-            Module(gensym("JuystEval")),
+            JlyfishLogger(),
+            Module(gensym("JlyfishEval")),
             evaluation_file,
             evaluations,
         )

@@ -31,9 +31,9 @@ function watch(
     typst_args = "",
     evaluation_file = default_output_file(typst_file),
 )
-    Pkg.activate(mktempdir(prefix = "juyst-eval"))
+    Pkg.activate(mktempdir(prefix = "jlyfish-eval"))
 
-    juyst_state = JuystState(;
+    jlyfish_state = JlyfishState(;
         evaluation_file,
         typst_file,
         typst_args = split(typst_args),
@@ -43,7 +43,7 @@ function watch(
         @info Dates.format(Dates.now(), "HH:MM:SS")
 
         try
-            execute!(juyst_state)
+            execute!(jlyfish_state)
         catch e
             if e isa StopRunning
                 break
@@ -65,7 +65,7 @@ function watch(
         end
     end
 
-    @info "Stopping Juyst. Bye!"
+    @info "Stopping Jlyfish. Bye!"
 end
 
 function compile(
@@ -74,16 +74,16 @@ function compile(
     typst_compile_args = "",
     evaluation_file = default_output_file(typst_file),
 )
-    Pkg.activate(mktempdir(prefix = "juyst-eval"))
+    Pkg.activate(mktempdir(prefix = "jlyfish-eval"))
 
-    juyst_state = JuystState(;
+    jlyfish_state = JlyfishState(;
         evaluation_file,
         typst_file,
         typst_args = split(typst_query_args),
     )
 
     try
-        execute!(juyst_state)
+        execute!(jlyfish_state)
     catch e
         if e isa StopRunning
             return
@@ -97,7 +97,7 @@ function compile(
         $(Typst_jll.typst())
         compile
         $(split(typst_compile_args))
-        $(juyst_state.typst_file)
+        $(jlyfish_state.typst_file)
     ```
     @info "Compiling document..."
     try

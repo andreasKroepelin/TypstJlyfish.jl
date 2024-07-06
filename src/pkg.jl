@@ -4,7 +4,7 @@ function if_not_empty(f, pkgs)
     end
 end
 
-function update_project(js::JuystState)
+function update_project(js::JlyfishState)
     (; pkg, prev_pkg) = js
     if pkg != prev_pkg
         currently_installed = [

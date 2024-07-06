@@ -1,11 +1,11 @@
-function typst_query!(js::JuystState)
+function typst_query!(js::JlyfishState)
     query_cmd = ```
         $(Typst_jll.typst())
         query
         $(js.typst_args)
         $(js.typst_file)
         --field value
-        "<juyst-data>"
+        "<jlyfish-data>"
     ```
 
     raw_query_str = try
