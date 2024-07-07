@@ -88,7 +88,7 @@ Just to show what is possible with Jlyfish:
 #let note = text.with(size: .7em, fill: luma(100), style: "italic")
 
 #read-julia-output(json("demo-jlyfish.json"))
-#jl-pkg("Colors", "Typstry", "Makie", "CairoMakie", "SummaryTables")
+#jl-pkg("Colors", "Typstry", "Makie", "CairoMakie")
 
 #grid(
   columns: 2,
