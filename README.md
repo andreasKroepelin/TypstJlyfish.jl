@@ -8,12 +8,6 @@ computations in your Typst document.
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/andreasKroepelin/TypstJlyfish.jl)
 [![GitHub Repo stars](https://img.shields.io/github/stars/andreasKroepelin/TypstJlyfish.jl)](https://github.com/andreasKroepelin/TypstJlyfish.jl)
 
-> [!NOTE]
-> Jlyfish works but is currently neither officially registered as a Julia or
-> Typst package, nor is this readme complete.
-> If you know your way around Julia and Typst you will find ways to try it out,
-> I guess :)
-
 You should use Jlyfish if you want to write a Typst document and have some of the
 content automatically produced but want the source code for that within your
 document source.
