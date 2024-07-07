@@ -29,7 +29,7 @@
     #note[Produce images in Julia:]
 
     #set image(width: 10em)
-    #jl(recompute: false, ```
+    #jl(recompute: false, logs: false, ```
       using Makie, CairoMakie
 
       as = -2.2:.01:.7
@@ -87,7 +87,7 @@
       println("Hello from stdout!")
       @info "Something to note" n p
       @warn "You should read this!"
-      this_does_not_exist
+      unknown
     ```)
   ]
 )

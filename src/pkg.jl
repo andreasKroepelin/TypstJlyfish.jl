@@ -18,6 +18,7 @@ function update_project(js::JlyfishState)
             if_not_empty(Pkg.add, pkg.add_pkgs)
             if_not_empty(Pkg.develop, pkg.dev_pkgs)
             Pkg.precompile()
+            Pkg.instantiate()
         catch e
             message = string(e)
             @error "Updating package dependencies failed!" message
