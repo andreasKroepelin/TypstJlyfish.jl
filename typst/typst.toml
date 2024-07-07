@@ -4,5 +4,5 @@ version = "0.1.0"
 entrypoint = "lib.typ"
 authors = ["Andreas Kröpelin"]
 license = "MIT"
-description = "Evaluate Julia code inside your Typst document"
+description = "Julia code evaluation inside your Typst document"
 keywords = ["julia", "jellyfish", "jelly", "execute", "evaluation", "embed", "plot"]
