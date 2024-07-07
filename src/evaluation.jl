@@ -28,12 +28,14 @@ function handle_code_cell!(js::JlyfishState, code_cell::CodeCell)
     )
     if should_skip
         @info """
-            Skipping recomputation of code section with id $(code_cell.id):
-            $(truncate_code(code_cell.code, 40))
+            Skipping recomputation of `$(truncate_code(code_cell.code, 30))`
         """
         throw(SkipCodeCell())
     end
 
+    @info """
+        Evaluating `$(truncate_code(code_cell.code, 30))` ...
+    """
     reset!(js.logger)
     computation = with_stdout_and_logger(; js.stdout_file, js.logger) do
         try

@@ -67,7 +67,7 @@ function is_serialisable_type(T)
 end
 
 function truncate_code(code, n)
-    chars = Vector{Char}(code)
+    chars = Vector{Char}(replace(strip(code), "\n" => " "))
     if length(chars) <= n
         code
     else

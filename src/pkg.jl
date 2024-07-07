@@ -7,6 +7,7 @@ end
 function update_project(js::JlyfishState)
     (; pkg, prev_pkg) = js
     if pkg != prev_pkg
+        @info "Updating package dependencies."
         currently_installed = [
             Pkg.PackageSpec(name, uuid)
             for (name, uuid)
