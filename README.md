@@ -8,9 +8,9 @@ computations in your Typst document.
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/andreasKroepelin/TypstJlyfish.jl)
 [![GitHub Repo stars](https://img.shields.io/github/stars/andreasKroepelin/TypstJlyfish.jl)](https://github.com/andreasKroepelin/TypstJlyfish.jl)
 
-You should use Jlyfish if you want to write a Typst document and have some of the
-content automatically produced but want the source code for that within your
-document source.
+You should use Jlyfish if you want to write a Typst document and have some of
+the content automatically produced by Julia code but want the source code for
+that within your document source.
 It fills a similar role as [PythonTeX](https://github.com/gpoore/pythontex)
 does for Python and LaTeX.
 Note that this is different from tools like [Quarto](https://quarto.org/) where
